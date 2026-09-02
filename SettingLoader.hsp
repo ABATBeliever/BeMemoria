@@ -1,0 +1,19 @@
+Setini_File dir_cur+"\\Config.ini"
+if AppName!=Getini_str("main","target","invalid"){dialog "設定ファイルが無効です。",1 : end}
+
+Var_DPIMode         = Getini_int("graphic","DPIMode",2)
+Var_isForceTop      = Getini_int("graphic","IsForceTop",1)
+Var_ViewScale       = Getini_int("graphic","ViewScale",1)
+Var_Opacity         = Getini_int("graphic","Opacity",0)
+Var_TextColor       = Getini_str("graphic","TextColor","0,0,0")
+Var_BackGroundColor = Getini_str("graphic","BackGroundColor","255,255,255")
+
+Var_Opacity = 100-Var_Opacity
+split Var_TextColor,",",TCol_R,TCol_G,TCol_B : TCol_R=int(TCol_R) : TCol_G=int(TCol_G) : TCol_B=int(TCol_B)
+split Var_BackGroundColor,",",BGCol_R,BGCol_G,BGCol_B : BGCol_R=int(BGCol_R) : BGCol_G=int(BGCol_G) : BGCol_B=int(BGCol_B)
+
+Var_h1Size = Getini_int("TextSize","h1Size",36)
+Var_h2Size = Getini_int("TextSize","h2Size",33)
+Var_h3Size = Getini_int("TextSize","h3Size",30)
+Var_h4Size = Getini_int("TextSize","h4Size",27)
+Var_Normal = Getini_int("TextSize","Normal",24)

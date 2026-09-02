@@ -1,0 +1,176 @@
+/*
+ BeMemoria v0.1 [Alpha]
+ Made by ABATBeliever
+
+ https://abatbeliever.net
+
+*/
+
+//ビルド設定エリア
+#packopt version "Build.ini"	//詳細
+//#packopt icon "app.ico"		//アイコン
+#packopt hide 1
+
+//===================================================================================
+
+#include "hspext.as"		//UTF-8化
+#include "hsp3utf.as"		//UTF-8化
+#include "hspinet.as"		//ネット通信
+#include "mod_regexp.as"	//正規表現一括変換
+
+#include "lib/mod_openini.as"	//iniモジュール
+#include "lib/mod_mdispinfo.as"	//画面モジュール
+
+//定数
+AppName          = "BeMemoria"
+AppNameInternal  = "BeMemoria"
+AppVer           = "0.1"
+AppVerInt        = "0.1"
+
+//エラーハンドリング
+onerror *onerror_handle
+//終了時の処理の予約
+onexit *exit
+
+//システム設定のロード
+#include "SettingLoader.hsp"
+
+//DPIモード
+#include "DPImodule.hsp"
+
+//二重起動対策
+#include "AppRunningmgr.hsp"
+
+//タスクトレイ依存関係
+#include "kernel32.as"
+#include "shell32.as"
+#include "user32.as"
+
+title "メニューを表示する"
+sdim FileName, 65535
+GetModuleFileName hModule, varptr(FileName), 65535
+ExtractIconEx varptr(FileName), 0, 0, varptr(hIconSmall), 1
+hIcon = hIconSmall(0)
+GetWindowTextLength hwnd
+sdim WindowTitle, stat + 1
+GetWindowText hwnd, varptr(WindowTitle), stat + 1
+dim IconData,22
+IconData(0) = 88
+IconData(1) = hwnd
+IconData(2) = 1
+IconData(3) = 0x0007 // NIF_MESSAGE | NIF_ICON | NIF_TIP
+IconData(4) = 0x0401 // WM_TRAYICON
+IconData(5) = hIcon
+poke IconData, 4 * 6, WindowTitle
+Shell_NotifyIcon 0x00000000, varptr(IconData) // NIM_ADD
+oncmd gosub *OnTrayIcon, 0x0401
+oncmd gosub *OnSize, $0005
+
+#module
+	#defcfunc TrueScale int p1
+	return 1.0*Var_ViewScale@*p1
+	#deffunc SetTitle str p1
+		if p1=""{
+			title AppName@+" v"+AppVer@
+		}else{
+			title AppName@+" v"+AppVer@+" | "+p1
+		}
+	return 0
+#global
+
+#include "DataScanner.hsp"
+
+//GUI設定
+screen 0,TrueScale(640),TrueScale(480),0							//画面サイズを設定
+width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)		//デスクトップの中心に表示
+SetTitle ""
+color 192,192,192:boxf:color 0,0,0			//色の初期化
+
+//全面表示設定
+if Var_isForceTop {
+	gsel 0,2
+}else{
+	gsel 0,1
+}
+
+pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": "+AppName+" へようこそ":font "",TrueScale(32):objmode 2
+input dummy:objenable 0,0
+pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(340):dummy="メモをロード中...":font "",TrueScale(20)
+mesbox dummy,,,0,0
+gosub *MemoListLoad												//メモをロード
+dummy+="\nメモを配置中...":objprm 1,dummy:gosub *SetMemo		//メモを配置
+
+gsel 0
+pos   0,TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "ようこそ",	*DisplayMode0
+pos 160,TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "使い方",		*DisplayMode1
+pos 320,TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "各種情報",	*DisplayMode2
+pos 480,TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "更新確認",	*DisplayMode3
+gosub *DisplayMode0
+pos   0,TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "新しい付箋を書く",	*DisplayMode0
+pos 160,TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "付箋を編集/削除",		*DisplayMode1
+pos 320,TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "ﾛｰｶﾙAIに尋ねる",		*DisplayMode0
+pos 480,TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "設定",				*DisplayMode3
+
+/*
+0     : ようこそ画面
+1     : 設定画面
+2     : AIウィンドウ
+3     : 新しいメモ / メモを編集
+4以上 : memo
+*/
+
+hWndList(0)=hwnd
+
+*main
+stop
+
+/////////////////////////////////////////////////////
+//スタティックエリア
+#include "InternetManager.hsp"
+#include "MemoLoader.hsp"
+#include "DisplayModeManager.hsp"
+
+*onerror_handle
+	tmp ="重大な問題が発生しました。\n"+AppName+"を終了します。\n\n"
+	tmp+="ﾊﾞｰｼﾞｮﾝ:"+AppVer+"\n"
+	tmp+="エラーコード: "
+	tmp+="0x"+strf("%04d",wparam)
+	tmp+="\n\n上記のデバッグ情報と状況を報告してくださると、修正の助けになります！"
+	dialog tmp,1
+end
+
+*OnTrayIcon
+if (wparam == 1) {
+	switch (lparam)
+		case 0x0201 // WM_LBUTTONDOWN
+			ShowWindow hwnd,4
+			swbreak
+	swend
+}
+return
+
+*OnSize
+    if wparam=1 { gsel 0,-1 }// : return}
+/*    width_dat  = lparam & $FFFF
+    height_dat = (lparam >> 16) & $FFFF
+dialog ""
+    //IDが4以上だった場合新しいサイズにURLを合わせる
+    sdim activeWnd
+	activeWnd = GetForegroundWindow()
+	repeat length(hWndList)
+		if cnt<4:continue
+		if activeWnd=hWndList(cnt) {
+			gsel cnt
+			MoveWindow input_hWndList(cnt),0,0,width_dat,40,0}
+	loop*/
+return 
+
+*onjump
+	if wparam = 1 {
+		sendmsg hWndList(ginfo(2)), $A1, 2
+	return
+	}
+return
+
+*exit
+end

@@ -1,0 +1,25 @@
+#module
+#uselib "kernel32.dll"
+#func  CloseHandle  "CloseHandle"  int
+#cfunc CreateMutex  "CreateMutexA" int, int, sptr
+#cfunc GetLastError "GetLastError"
+#define ERROR_ALREADY_EXISTS    183
+#define MUTEX_NAME AppNameInternal@
+#defcfunc AlreadyAppRunning
+if (hMutex == 0) {
+    hMutex = CreateMutex(0, 0, MUTEX_NAME)
+    if (GetLastError() == ERROR_ALREADY_EXISTS) {
+        alreadyRunning = 1
+    } else {
+        alreadyRunning = 0
+    }
+}
+return alreadyRunning
+#deffunc CleanupAppRunChecker onexit
+if (hMutex != 0) {
+    CloseHandle hMutex
+    hMutex = 0
+}
+return
+#global
+if (AlreadyAppRunning()) { dialog "すでに起動されているようです。\nタスクトレイを確認ください。" : end }

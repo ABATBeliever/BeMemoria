@@ -1,0 +1,125 @@
+#module
+	#defcfunc IsThisMemoValid str p1
+		sdim buffers
+		notesel buggers
+		noteload dir_cur+"/memo/"+p1
+		if notemax<6														{logmes "out0":noteunsel:return 1}
+		sdim tmp	:	noteget tmp,0	:	if tmp!="[info]"				{logmes "out1":noteunsel:return 1}
+		sdim tmp	:	noteget tmp,1	:	if 0!=instr(tmp,0,"pos_x=")	 	{logmes "out2":noteunsel:return 1}
+		sdim tmp	:	noteget tmp,2	:	if 0!=instr(tmp,0,"pos_y=")	 	{logmes "out3":noteunsel:return 1}
+		sdim tmp	:	noteget tmp,3	:	if 0!=instr(tmp,0,"size_x=") 	{logmes "out4":noteunsel:return 1}
+		sdim tmp	:	noteget tmp,4	:	if 0!=instr(tmp,0,"size_y=")	{logmes "out5":noteunsel:return 1}
+
+		sdim tmp:noteget tmp,6:if tmp!="[Content]"							{logmes "out6":noteunsel:return 1}
+		noteunsel
+	return 0
+	
+	#defcfunc LoadMemoMetaData str p1
+		sdim buffers
+		sdim res
+		notesel buffers
+		noteload dir_cur+"/memo/"+p1
+		sdim tmp	:	noteget tmp,1	:	strrep tmp,"pos_x=",""	:	if str(tmp)=""{tmp=100}	:	res =    str(tmp)
+		sdim tmp	:	noteget tmp,2	:	strrep tmp,"pos_y=",""	:	if str(tmp)=""{tmp=100}	:	res+=","+str(tmp)
+		sdim tmp	:	noteget tmp,3	:	strrep tmp,"size_x=",""	:	if str(tmp)=""{tmp=100}	:	res+=","+str(tmp)
+		sdim tmp	:	noteget tmp,4	:	strrep tmp,"size_y=",""	:	if str(tmp)=""{tmp=100}	:	res+=","+str(tmp)
+		noteunsel
+	return res
+	
+	#defcfunc LoadMemoText str p1
+		sdim buffers
+		sdim tmp
+		sdim res
+		notesel buffers
+		noteload dir_cur+"/memo/"+p1
+		repeat notemax
+			if cnt<7 : continue
+			noteget tmp,cnt
+			strrep tmp,",","-"
+			res+=tmp+","
+		loop
+		res+="[EOF]"
+		noteunsel
+	return res
+#global
+
+*MemoListLoad
+	sdim ValidMemoList
+	sdim TempMemoList
+	dim flag			//îzóÒÇÕç≈èâÇÃë„ì¸Ç©î€Ç©
+
+	dirlist TempMemoList,dir_cur+"/memo/*.note",3
+	
+	logmes TempMemoList
+	notesel TempMemoList
+	repeat notemax
+		logmes ""+str(cnt+1)+"/"+str(notemax)
+		sdim tmp
+		noteget tmp,cnt
+		if IsThisMemoValid(tmp)=0{
+			if flag{
+				ValidMemoList(length(ValidMemoList))=tmp
+				logmes "valid (not first) "+tmp
+			}else{
+				ValidMemoList=tmp
+				logmes "valid (first) "+tmp
+				flag=1
+			}
+		}else{logmes "invalid "+tmp}
+	loop
+	noteunsel
+return
+
+*SetMemo
+	sdim ValidMemoTitleList
+	repeat length(ValidMemoList)
+		sdim tmp
+		if ValidMemoList(cnt)="" : continue
+		tmp=LoadMemoMetaData(ValidMemoList(cnt))
+		dim pos_x : dim pos_y : dim size_x : dim size_y
+		split tmp,",",pos_x,pos_y,size_x,size_y,ValidMemoTitleList(cnt)
+		pos_x =int(pos_x)  : pos_y =int(pos_y)
+		size_x=int(size_x) : size_y=int(size_y)
+		if ginfo(20)+100 < pos_x {pos_x=ginfo(20)+100}
+		if ginfo(21)+100 < pos_y {pos_y=ginfo(21)+100}
+		if size_x>1000 {size_x=1000}
+		if size_y>750 {size_y=750}
+
+		sdim tmp : tmp=": "+ValidMemoTitleList(cnt)
+		bgscr (4+cnt),1000,750,0,pos_x,pos_y,size_x,size_y
+		hWndList(4+cnt)=hwnd					//hwndÇìoò^
+		GetWindowLong hwnd, -16
+		SetWindowLong hwnd, -16, stat | $40000	//ÉTÉCÉYâ¬ïœ
+		GetWindowLong hwnd, -20
+		SetWindowLong hwnd, -20, stat | $80000
+		SetLayeredWindowAttributes hwnd, 0, 255 * Var_Opacity  / 100, 2 //ìßñæìx
+		if Var_isForceTop {gsel (4+cnt),2}else{gsel (4+cnt),1}
+		color BGCol_R,BGCol_G,BGCol_B : boxf	//îwåiêF
+		color TCol_R,TCol_G,TCol_B				//ï∂éöêF
+		sdim Text
+		Text=LoadMemoText(ValidMemoList(cnt))
+		split Text,",",Text
+		repeat length(Text)
+			if       instr(Text(cnt),0,"# ") =0{  font "",TrueScale(Var_h1Size):logmes "h1 "+Text
+			}else:if instr(Text(cnt),0,"## ")=0{  font "",TrueScale(Var_h2Size):logmes "h2 "+Text
+			}else:if instr(Text(cnt),0,"### ")=0{ font "",TrueScale(Var_h3Size):logmes "h3 "+Text
+			}else:if instr(Text(cnt),0,"#### ")=0{font "",TrueScale(Var_h4Size):logmes "h4 "+Text
+			}else{                                font "",TrueScale(Var_Normal):logmes "Normal "+Text
+			}
+			if Text(cnt)="[EOF]"{break}
+			strrep Text(cnt),"#### ",""
+			strrep Text(cnt),"### ",""
+			strrep Text(cnt),"## ",""
+			strrep Text(cnt),"# ",""
+			if instr(Text(cnt),0,"* ") =0{
+				strrep Text(cnt),"* ",""
+				mes Text(cnt),2
+			}else{
+				strrep Text(cnt),"* ",""
+				mes Text(cnt)
+			}
+		loop
+	loop
+	onclick gosub *onjump
+gsel 0
+return

@@ -1,0 +1,46 @@
+//各種情報スキャン
+//SpeakAPI
+newcom spv, "Sapi.SpVoice"
+if varuse(spv)=0 {
+	IsCanUseSAPI=0
+}else{
+	IsCanUseSAPI=1
+}
+
+// 画面サイズ把握
+GetDispMaxSize w,h: p=stat
+if p=0 { dialog "画面サイズの把握に失敗しました。",1,"Error 0x00" }
+SizeMax = ""+w+"x"+h
+GetMultiDispInfo 16,prm,rect: p=stat
+if p=0 { dialog "マルチディスプレイ情報の取得に失敗しました。",1,"Error 0x01" }
+DisplayNum   = 0
+DisplayNum   = prm(2)
+PrimaryIndex = prm(3)
+DisplayInfo  = ""
+repeat DisplayNum
+	p=cnt*4
+	x1=rect(p): y1=rect(p+1): x2=rect(p+2): y2=rect(p+3)
+	w=abs(x1-x2): h=abs(y1-y2)
+	DisplayInfo+= "[ID "+cnt+"] X1:"+x1+" Y1:"+y1+" X2:"+x2+" Y2:"+y2+" ("+w+"x"+h+")\n"
+loop
+
+//LLMTextCore
+IsCanUseAI=1
+exist dir_cur+"/llm/LLMTextCore.dll":if strsize=-1{IsCanUseAI=0}
+exist dir_cur+"/llm/LLMTextCore.exe":if strsize=-1{IsCanUseAI=0}
+
+if IsCanUseAI{
+	sdim LLMTextCoreVersion
+	pipeexec LLMTextCoreVersion,dir_cur+"/llm/LLMTextCore.exe -v"
+	if stat{
+		IsCanUserAI=0
+	}else{
+		sdim dummy
+		repeat
+			pipeget dummy
+			if stat=0:break
+			await 10
+		loop
+		IsCanUseAI=1
+	}
+}

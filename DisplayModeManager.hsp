@@ -1,0 +1,53 @@
+*DisplayMode0
+	tmp ={"Windowsのデスクトップ上に自由に配置できる、仮想付箋アプリです。
+
+思いついたこと、TODO、調べもの、備忘録...
+デスクトップ上の仮想付箋としてとりあえず書いてみませんか?
+
+付箋はMarkdown風の構文が利用でき、見出しと強調が利用できます。
+
+さらに、ローカルで動作するAIに付箋を連携させることもできます。
+(AIモデルは付属しません。自力で用意してください。)
+
+全ての付箋からAIまで、全ての処理はローカル環境で完結しています。
+規約違反のBANにおびえる必要はありません。
+
+
+さあ、始めましょう。"}
+	gosub *DisplayDo
+return
+
+*DisplayMode1
+	tmp ={"使い方dummy"}
+	gosub *DisplayDo
+return
+
+*DisplayMode2
+
+	tmp ="各種情報\n========\nディスプレイ情報:\n"+DisplayInfo
+	tmp+"\nSpeak API:"
+	if IsCanUseSAPI{
+		tmp+="利用可能"
+	}else{
+		tmp+="利用不能"
+	}
+	tmp+="\n\nローカルAIモジュール:"
+	if IsCanUseAI{
+		tmp+="利用可能\n>>"+LLMTextCoreVersion
+	}else{
+		tmp+="利用不能"
+	}
+	gosub *DisplayDo
+return
+
+*DisplayMode3
+	tmp="更新確認\n========\n更新確認を開始"
+	gsel 0
+	objprm 1,tmp
+	gosub *Checking_Update
+return
+
+*DisplayDo
+	gsel 0
+	objprm 1,tmp
+return

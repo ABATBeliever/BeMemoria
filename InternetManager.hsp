@@ -1,0 +1,62 @@
+/*
+ HotStasher
+ 2026 ABATBeliever (https://abatbeliever.net/software/bin/HotStasher)
+*/
+//===================================================================================
+*Checking_Update
+	exist "hspinet.dll"
+	if strsize=-1{
+		tmp+="\nhspinet.dllが見つかりません"
+		objprm 1,tmp:return
+	}
+	netinit
+	if stat {
+		tmp+="\nhspinetの初期化に失敗しました"
+		objprm 1,tmp:return
+	}
+	netagent ""+AppName+"/"+AppVer
+	neturl "https://abatbeliever.net/upd/"+AppName+"/win-x86"
+	netrequest_get ""
+	tmp+="\n更新を確認中 (https://abatbeliever.net/upd/"+AppName+"/win-x86)\n"
+	objprm 1,tmp
+	repeat 64
+		await 100
+		dim res
+		netexec res
+		if res>0 {
+			netgetv dat
+			if strlen(dat)>512 {
+				tmp+="\n更新確認サーバからの応答が不正です(長すぎます)"
+				objprm 1,tmp:return
+			}
+			split dat,",",dat
+			if dat(0)!="["+AppName+"]"{
+				tmp+="\n更新確認サーバからの応答が不正です(ヘッダー不良)"
+				objprm 1,tmp:return
+			}
+			if length(dat)!=3{
+				tmp+="\n更新確認サーバからの応答が不正です(Syntaxエラー)"
+				objprm 1,tmp:return
+			}
+			if AppVerInt!=dat(1) {
+				strrep dat(2),"<br>","\n"
+				tmp+="\n\n更新があります！\n最新版:	v"+dat(1)+"\n現在は:	v"+AppverInt+"\n"+dat(2)+"\nhttps://abatbeliever.net/software/"+AppName+"/ よりダウンロード"
+				objprm 1,tmp:return
+			}else{
+				tmp+="\nお使いのバージョンは最新版です"
+				objprm 1,tmp:return
+			}
+			break
+		}
+
+		if res<0 {
+			neterror dat
+			tmp+="\n更新確認サーバに接続できませんでした("+dat+")"
+			objprm 1,tmp:return
+		}
+		if cnt=15 {
+			tmp+="\n更新確認サーバに接続できませんでした(タイムアウト)"
+			objprm 1,tmp:return
+		}
+	loop
+goto *exit

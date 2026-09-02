@@ -1,0 +1,13 @@
+
+//DPI対策
+#uselib "kernel32"																//Kernel32.dllを利用する
+#uselib "user32.dll"															//user32.dllを利用する
+#func SetProcessDpiAwarenessContext "SetProcessDpiAwarenessContext" int			//DPI関数(上位)の定義
+#func SetProcessDPIAware "SetProcessDPIAware"									//DPI関数(下位)の定義
+
+//モード別DPI対応
+switch Var_DPIMode
+	case 1 : SetProcessDpiAware               : swbreak
+	case 2 : SetProcessDpiAwarenessContext -4 : swbreak
+	default                                   : swbreak
+swend
