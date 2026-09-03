@@ -26,6 +26,21 @@
 		noteunsel
 	return res
 	
+	#defcfunc LoadMemoFirstText str p1
+		sdim buffers
+		sdim tmp
+		sdim res
+		notesel buffers
+		noteload dir_cur+"/memo/"+p1
+		repeat notemax
+			if cnt<7 : continue
+			noteget tmp,cnt
+			strrep tmp,",","-"
+			if tmp=""{tmp="‹ó‚Á‚Û‚Å‚·":continue}else{break}
+		loop
+		noteunsel
+	return tmp
+	
 	#defcfunc LoadMemoText str p1
 		sdim buffers
 		sdim tmp

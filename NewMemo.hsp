@@ -1,0 +1,161 @@
+*NewMemo
+	gsel 0,-1
+	screen 3,TrueScale(320),TrueScale(200),0
+	hWndList(3)=hwnd
+	GetWindowLong hwnd, -16
+	SetWindowLong hwnd, -16, stat - $80000
+	width ,,ginfo(20)/2-TrueScale(160),ginfo(21)/2-TrueScale(100)
+	pos 0,0:objsize TrueScale(320),TrueScale(40):dummy=": 新しい付箋を作る":font "",TrueScale(32):objmode 2
+	if Var_isForceTop {gsel 3,2}else{gsel 3,1}
+	input dummy:objenable 0,0
+	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(80)
+	dummy="新しい付箋のファイル名を入力\nしてください。"
+	font "",TrueScale(20)
+	mesbox dummy,,,0,0
+	sdim FileName,256
+	FileName=strf("%02d-%02d-%02d-%02d-%02d-%02d", gettime(0)\100, gettime(1), gettime(3), gettime(4), gettime(5), gettime(6))
+	dummy=".note"
+	pos              0,TrueScale(120):objsize TrueScale(240),TrueScale(30):input FileName
+	pos TrueScale(240),TrueScale(120):objsize TrueScale( 80),TrueScale(30):input dummy    : objenable 3,0
+	pos   0,TrueScale(150):objsize TrueScale(160),TrueScale(50):button "キャンセル",*ExitMemo
+	pos 160,TrueScale(150):objsize TrueScale(160),TrueScale(50):button "作成",		*CreateMemo
+	stop
+
+*CreateMemo
+	exist dir_cur+"/memo/"+FileName+".note"
+	if strsize!=-1{
+		dialog "その名前のファイルが存在するため、違う名前にしてください。"
+		stop
+	}
+	sdim NewMemoDraft
+	NewMemoDraft="[info]\npos_x=100\npos_y=120\nsize_x=120\nsize_y=120\n\n[Content]\n空っぽの新しいメモ"
+	notesel NewMemoDraft
+	notesave dir_cur+"/memo/"+FileName+".note"
+	repeat length(ValidMemoList)
+		gsel (4+cnt),-1
+	loop
+	gosub *MemoListLoad
+	gosub *SetMemo
+	TmpDisplayCnt=-1
+	repeat length(ValidMemoList)
+		if ValidMemoList(cnt)=FileName+".note"{TmpDisplayCnt=cnt:break}
+	loop
+	goto *EditMemo
+	
+
+*SelectMemo
+	gsel 0,-1
+	screen 3,TrueScale(640),TrueScale(480),0
+	hWndList(3)=hwnd
+	GetWindowLong hwnd, -16
+	SetWindowLong hwnd, -16, stat - $80000
+	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": 付箋を書き換える":font "",TrueScale(32):objmode 2
+	if Var_isForceTop {gsel 3,2}else{gsel 3,1}
+	input dummy:objenable 0,0
+	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(40)
+	dummy={"手を加えたい付箋を選んでください。"}
+	font "",TrueScale(20)
+	mesbox dummy,,,0,0
+	dim TmpDisplayCnt
+	sdim TmpDisplayList
+	flag=0	//1つめかどうか
+	repeat length(ValidMemoList)
+		sdim tmp
+		tmp=ValidMemoList(cnt)
+		if flag{
+			TmpDisplayList+="\n"+LoadMemoFirstText(ValidMemoList(cnt))+"... ("+tmp+")"
+		}else{
+			TmpDisplayList=LoadMemoFirstText(ValidMemoList(cnt))+"... ("+tmp+")"
+			flag=1
+		}
+	loop
+	noteunsel
+	objsize TrueScale(640),TrueScale(260)
+	listbox TmpDisplayCnt,,TmpDisplayList
+	pos              0,TrueScale(430):objsize TrueScale(140),TrueScale(50):button "戻る",	*ExitMemo
+	pos TrueScale(140),TrueScale(430):objsize TrueScale(250),TrueScale(50):button "編集する",	*EditMemo
+	pos TrueScale(390),TrueScale(430):objsize TrueScale(250),TrueScale(50):button "削除する",	*DelMemo
+	stop
+
+*DelMemo
+	sdim tmp
+	tmp=LoadMemoText(ValidMemoList(TmpDisplayCnt))
+	strrep tmp,",","\n"
+	exist dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
+	if strsize=-1{stop}
+	dialog "付箋「"+ValidMemoList(TmpDisplayCnt)+" ("+strsize+"byte)」を削除しますか?\n'はい(Y)'を押すと、下記の内容は永遠に失われます。\n内容:\n"+tmp,3
+	if stat=7 {stop}
+	delete dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
+	repeat length(ValidMemoList)
+		gsel (4+cnt),-1
+	loop
+	gosub *MemoListLoad
+	gosub *SetMemo
+	goto *SelectMemo
+
+*EditMemo
+	exist dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
+	if strsize=-1{stop}
+	screen 3,TrueScale(640),TrueScale(480),0
+	hWndList(3)=hwnd
+	GetWindowLong hwnd, -16
+	SetWindowLong hwnd, -16, stat - $80000
+	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": 付箋「"+ValidMemoList(TmpDisplayCnt)+"」を書き換える":font "",TrueScale(32):objmode 2
+	if Var_isForceTop {gsel 3,2}else{gsel 3,1}
+	input dummy:objenable 0,0
+	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(300)
+	sdim EditMemoSTR
+	EditMemoSTR=LoadMemoText(ValidMemoList(TmpDisplayCnt))
+	strrep EditMemoSTR,",","\n"
+	font "",TrueScale(20)
+	mesbox EditMemoSTR,,,1,65535
+	pos 0,TrueScale(340):objsize TrueScale(640),TrueScale(90)
+	font "",TrueScale(15)
+	sdim dummy:dummy="・文頭に「# 」をつけるとh1、「## 」をつけるとh2...という風に、#の数で見出し構造を作れます。\n  #は1～4つ使用でき、#と本文の間は半角スペースを開けてください\n・文頭に「* 」をつけることで、その分を強調できます\n・「[EOF]」とのみ書かれた行の後は無視されます。"
+	mesbox dummy,,,0,0
+	font "",TrueScale(20):objmode 2
+	pos              0,TrueScale(430):objsize TrueScale(140),TrueScale(50):button "変更を破棄",	*ExitMemo
+	pos TrueScale(140),TrueScale(430):objsize TrueScale(500),TrueScale(50):button "保存する",	*Savememo
+	stop
+
+*SaveMemo
+	sdim tmp
+	sdim flag:flag=0
+	sdim NewMemoDraft
+	notesel EditMemoSTR
+	repeat notemax
+		noteget tmp,cnt
+		if tmp="[EOF]" {break}
+		if flag{
+			NewMemoDraft+="\n"+tmp
+		}else{
+			flag=1
+			NewMemoDraft=tmp
+		}
+	loop
+	noteunsel
+	dialog "付箋「"+ValidMemoList(TmpDisplayCnt)+"」 を上書きします、よろしいですか?",2
+	if stat=7{stop}
+	sdim tmp
+	tmp=LoadMemoMetaData(ValidMemoList(TmpDisplayCnt))
+	split tmp,",",tmp
+	NewMemoDraft="[info]\npos_x="+str(tmp(0))+"\npos_y="+str(tmp(1))+"\nsize_x="+str(tmp(2))+"\nsize_y="+str(tmp(3))+"\n\n[Content]\n"+NewMemoDraft
+	dialog NewMemoDraft
+	delete dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
+	notesel NewMemoDraft
+	notesave dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
+	noteunsel
+	dialog "付箋を書き換えました"
+	repeat length(ValidMemoList)
+		gsel (4+cnt),-1
+	loop
+	gosub *MemoListLoad
+	gosub *SetMemo
+	goto *SelectMemo
+
+*ExitMemo
+	gsel 3,-1
+	if Var_isForceTop {gsel 0,2}else{gsel 0,1}
+stop
