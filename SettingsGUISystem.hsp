@@ -1,0 +1,22 @@
+*Setting_GUI
+	gsel 0,-1
+	screen 1,TrueScale(640),TrueScale(480),0
+	hWndList(1)=hwnd
+	GetWindowLong hwnd, -16
+	SetWindowLong hwnd, -16, stat - $80000
+	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": ê›íË":font "",TrueScale(32):objmode 2
+	if Var_isForceTop {gsel 1,2}else{gsel 1,1}
+	input dummy:objenable 0,0
+	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(40)
+	dummy={"èÄîıíÜÅ@0.4Ç≈é¿ëïó\íË Ç‹Ç‡Ç»Ç≠ñﬂÇËÇ‹Ç∑"}
+	font "",TrueScale(20)
+	mesbox dummy,,,0,0
+	await 5000
+	gosub *Setting_GUI_Close
+return
+
+*Setting_GUI_Close
+	gsel 1,-1
+	if Var_isForceTop {gsel 0,2}else{gsel 0,1}
+stop

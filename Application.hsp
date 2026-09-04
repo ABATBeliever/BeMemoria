@@ -1,5 +1,5 @@
 /*
- BeMemoria v0.1 [Alpha]
+ BeMemoria v0.3 [Alpha]
  Made by ABATBeliever
 
  https://abatbeliever.net
@@ -23,8 +23,8 @@
 
 //’è”
 AppName          = "BeMemoria"
-AppVer           = "0.2"
-AppVerInt        = "0.2"
+AppVer           = "0.3"
+AppVerInt        = "0.3"
 
 //ƒGƒ‰[ƒnƒ“ƒhƒŠƒ“ƒO
 //onerror *onerror_handle
@@ -44,6 +44,10 @@ onexit *exit
 #include "kernel32.as"
 #include "shell32.as"
 #include "user32.as"
+
+//ƒtƒHƒ‹ƒ_‚ª‘¶İ‚·‚é‚©
+dirlist dummy,""+dir_cur+"/memo",5
+if stat=0{dialog "umemovƒtƒHƒ‹ƒ_‚ª‚ ‚è‚Ü‚¹‚ñB\nÀsƒtƒ@ƒCƒ‹‚Æ“¯‚¶ƒpƒX‚ÉumemovƒtƒHƒ‹ƒ_‚ğì‚Á‚Ä‚©‚ç‹N“®‚µ‚Ä‚­‚¾‚³‚¢B":end}
 
 title "ƒƒjƒ…[‚ğ•\¦‚·‚é"
 sdim FileName, 65535
@@ -85,19 +89,20 @@ width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)		//ƒfƒXƒNƒgƒbƒv‚Ì’
 SetTitle ""
 color 192,192,192:boxf:color 0,0,0			//F‚Ì‰Šú‰»
 
-//‘S–Ê•\¦İ’è
-if Var_isForceTop {
-	gsel 0,2
-}else{
-	gsel 0,1
-}
-
 pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": "+AppName+" ‚Ö‚æ‚¤‚±‚»":font "",TrueScale(32):objmode 2
 input dummy:objenable 0,0
 pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(340):dummy="ƒƒ‚‚ğƒ[ƒh’†...":font "",TrueScale(20)
 mesbox dummy,,,0,0
 gosub *MemoListLoad												//ƒƒ‚‚ğƒ[ƒh
 dummy+="\nƒƒ‚‚ğ”z’u’†...":objprm 1,dummy:gosub *SetMemo		//ƒƒ‚‚ğ”z’u
+
+//—\–ñID
+screen 1,100,100,screen_hide
+screen 2,100,100,screen_hide
+screen 3,100,100,screen_hide
+
+//‘S–Ê•\¦İ’è
+if Var_isForceTop {gsel 0,2}else{gsel 0,1}
 
 gsel 0
 pos   0,TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "‚æ‚¤‚±‚»",	*DisplayMode0
@@ -108,7 +113,7 @@ gosub *DisplayMode0
 pos   0,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "V‚µ‚¢•tâ³‚ğ‘‚­",		*NewMemo
 pos 160,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "•tâ³‚ğ•ÒW/íœ",		*SelectMemo
 pos 320,TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "Û°¶ÙAI‚Éq‚Ë‚é",	*DisplayMode0
-pos 480,TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "İ’è",			*DisplayMode3
+pos 480,TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "İ’è",			*Setting_GUI
 
 /*
 0     : ‚æ‚¤‚±‚»‰æ–Ê
@@ -119,7 +124,7 @@ pos 480,TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "İ’è",
 */
 
 hWndList(0)=hwnd
-
+gosub *SaveMemoMetaData
 *main
 stop
 
@@ -129,6 +134,7 @@ stop
 #include "MemoLoader.hsp"
 #include "DisplayModeManager.hsp"
 #include "NewMemo.hsp"
+#include "SettingsGUISystem.hsp"
 
 *onerror_handle
 	tmp ="d‘å‚È–â‘è‚ª”­¶‚µ‚Ü‚µ‚½B\n"+AppName+"‚ğI—¹‚µ‚Ü‚·B\n\n"
@@ -173,4 +179,5 @@ return
 return
 
 *exit
+	gosub *SaveMemoMetaData
 end

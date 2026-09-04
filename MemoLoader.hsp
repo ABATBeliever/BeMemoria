@@ -27,6 +27,7 @@
 	return res
 	
 	#defcfunc LoadMemoFirstText str p1
+		if p1=""{return "空っぽです"}
 		sdim buffers
 		sdim tmp
 		sdim res
@@ -42,6 +43,7 @@
 	return tmp
 	
 	#defcfunc LoadMemoText str p1
+		if p1=""{return "空っぽです"}
 		sdim buffers
 		sdim tmp
 		sdim res
@@ -56,6 +58,16 @@
 		res+="[EOF]"
 		noteunsel
 	return res
+
+	#deffunc SaveMemoMetaDataTaskDo str p1, int p2
+		Setini_File dir_cur+"/memo/"+p1
+		if ginfo(25)=p2 or ginfo(25)<p2{dialog "デバッグ情報0x06 MemoLoader "+ginfo(25):return}
+		gsel p2
+		Setini_int "info","pos_x",ginfo(4)
+		Setini_int "info","pos_y",ginfo(5)
+		Setini_int "info","size_x",ginfo(10)
+		Setini_int "info","size_y",ginfo(11)
+	return
 #global
 
 *MemoListLoad
@@ -99,18 +111,18 @@ return
 		if ginfo(21)+100 < pos_y {pos_y=ginfo(21)+100}
 		if size_x>1000 {size_x=1000}
 		if size_y>750 {size_y=750}
-
-		sdim tmp : tmp=": "+ValidMemoTitleList(cnt)
-		bgscr (4+cnt),1000,750,0,pos_x,pos_y,size_x,size_y
+		bgscr (4+cnt),1000,750,screen_hide,pos_x,pos_y,size_x,size_y
+		title "付箋「"+LoadMemoFirstText(ValidMemoList(cnt))+"」"
 		hWndList(4+cnt)=hwnd					//hwndを登録
 		GetWindowLong hwnd, -16
 		SetWindowLong hwnd, -16, stat | $40000	//サイズ可変
 		GetWindowLong hwnd, -20
 		SetWindowLong hwnd, -20, stat | $80000
 		SetLayeredWindowAttributes hwnd, 0, 255 * Var_Opacity  / 100, 2 //透明度
-		if Var_isForceTop {gsel (4+cnt),2}else{gsel (4+cnt),1}
 		color BGCol_R,BGCol_G,BGCol_B : boxf	//背景色
 		color TCol_R,TCol_G,TCol_B				//文字色
+		dim NowMaxSize_X
+		dim NowMaxSize_Y
 		sdim Text
 		Text=LoadMemoText(ValidMemoList(cnt))
 		split Text,",",Text
@@ -129,12 +141,27 @@ return
 			if instr(Text(cnt),0,"* ") =0{
 				strrep Text(cnt),"* ",""
 				mes Text(cnt),2
+				if ginfo(14)>NowMaxSize_X : NowMaxSize_X=ginfo(14)
+				NowMaxSize_Y+=ginfo(15)
 			}else{
 				strrep Text(cnt),"* ",""
 				mes Text(cnt)
+				if ginfo(14)>NowMaxSize_X : NowMaxSize_X=ginfo(14)
+				NowMaxSize_Y+=ginfo(15)
 			}
 		loop
+		NowMaxSize_X+=TrueScale(20)
+		NowMaxSize_Y+=TrueScale(20)
+		pos NowMaxSize_X,NowMaxSize_Y:mes "+"		
+		width NowMaxSize_X,NowMaxSize_Y
+		if Var_isForceTop {gsel (4+cnt),2}else{gsel (4+cnt),1}
 	loop
 	onclick gosub *onjump
 gsel 0
+return
+
+*SaveMemoMetaData
+	repeat length(ValidMemoList)
+		SaveMemoMetaDataTaskDo ValidMemoList(cnt),(4+cnt)
+	loop
 return

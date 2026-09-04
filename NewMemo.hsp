@@ -32,6 +32,7 @@
 	notesel NewMemoDraft
 	notesave dir_cur+"/memo/"+FileName+".note"
 	repeat length(ValidMemoList)
+		if ginfo(25)=(4+cnt) or ginfo(25)<(4+cnt){continue}
 		gsel (4+cnt),-1
 	loop
 	gosub *MemoListLoad
@@ -86,6 +87,7 @@
 	if strsize=-1{stop}
 	dialog "付箋「"+ValidMemoList(TmpDisplayCnt)+" ("+strsize+"byte)」を削除しますか?\n'はい(Y)'を押すと、下記の内容は永遠に失われます。\n内容:\n"+tmp,3
 	if stat=7 {stop}
+	gosub *SaveMemoMetaData
 	delete dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
 	repeat length(ValidMemoList)
 		gsel (4+cnt),-1
@@ -138,16 +140,15 @@
 	noteunsel
 	dialog "付箋「"+ValidMemoList(TmpDisplayCnt)+"」 を上書きします、よろしいですか?",2
 	if stat=7{stop}
+	gosub *SaveMemoMetaData
 	sdim tmp
 	tmp=LoadMemoMetaData(ValidMemoList(TmpDisplayCnt))
 	split tmp,",",tmp
 	NewMemoDraft="[info]\npos_x="+str(tmp(0))+"\npos_y="+str(tmp(1))+"\nsize_x="+str(tmp(2))+"\nsize_y="+str(tmp(3))+"\n\n[Content]\n"+NewMemoDraft
-	dialog NewMemoDraft
 	delete dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
 	notesel NewMemoDraft
 	notesave dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
 	noteunsel
-	dialog "付箋を書き換えました"
 	repeat length(ValidMemoList)
 		gsel (4+cnt),-1
 	loop

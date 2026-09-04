@@ -1,16 +1,16 @@
 *DisplayMode0
 	tmp ={"Windowsのデスクトップ上に自由に配置できる、仮想付箋アプリです。
 
-思いついたこと、TODO、調べもの、備忘録...
-デスクトップ上の仮想付箋としてとりあえず書いてみませんか?
+思いついたこと、TODO、備忘録。とりあえず書いてみませんか?
 
-付箋はMarkdown風の構文が利用でき、見出しと強調が利用できます。
+付箋はMarkdown風の構文が利用でき、見出しと強調が使えます。
 
 さらに、ローカルで動作するAIに付箋を連携させることもできます。
 (AIモデルは付属しません。自力で用意してください。)
 
-全ての付箋からAIまで、全ての処理はローカル環境で完結しています。
+全ての付箋からAIまで、全ての処理はローカル環境で完結しているため、
 規約違反のBANにおびえる必要はありません。
+
 
 
 さあ、始めましょう。"}
@@ -43,8 +43,16 @@ return
 *DisplayMode3
 	tmp="更新確認\n========\n更新確認を開始"
 	gsel 0
+	repeat 9
+		objenable cnt+1,0
+	loop
 	objprm 1,tmp
+	await 1000
 	gosub *Checking_Update
+	await 1000
+	repeat 9
+		objenable cnt+1,1
+	loop
 return
 
 *DisplayDo
