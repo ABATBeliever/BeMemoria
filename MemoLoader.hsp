@@ -1,7 +1,7 @@
 #module
 	#defcfunc IsThisMemoValid str p1
 		sdim buffers
-		notesel buggers
+		notesel buffers
 		noteload dir_cur+"/memo/"+p1
 		if notemax<6														{logmes "out0":noteunsel:return 1}
 		sdim tmp	:	noteget tmp,0	:	if tmp!="[info]"				{logmes "out1":noteunsel:return 1}
@@ -127,11 +127,11 @@ return
 		Text=LoadMemoText(ValidMemoList(cnt))
 		split Text,",",Text
 		repeat length(Text)
-			if       instr(Text(cnt),0,"# ") =0{  font "",TrueScale(Var_h1Size):logmes "h1 "+Text
-			}else:if instr(Text(cnt),0,"## ")=0{  font "",TrueScale(Var_h2Size):logmes "h2 "+Text
-			}else:if instr(Text(cnt),0,"### ")=0{ font "",TrueScale(Var_h3Size):logmes "h3 "+Text
-			}else:if instr(Text(cnt),0,"#### ")=0{font "",TrueScale(Var_h4Size):logmes "h4 "+Text
-			}else{                                font "",TrueScale(Var_Normal):logmes "Normal "+Text
+			if       instr(Text(cnt),0,"# ") =0{  font "",TrueScale(Var_h1Size):logmes "h1 "+Text(cnt)
+			}else:if instr(Text(cnt),0,"## ")=0{  font "",TrueScale(Var_h2Size):logmes "h2 "+Text(cnt)
+			}else:if instr(Text(cnt),0,"### ")=0{ font "",TrueScale(Var_h3Size):logmes "h3 "+Text(cnt)
+			}else:if instr(Text(cnt),0,"#### ")=0{font "",TrueScale(Var_h4Size):logmes "h4 "+Text(cnt)
+			}else{                                font "",TrueScale(Var_Normal):logmes "Normal "+Text(cnt)
 			}
 			if Text(cnt)="[EOF]"{break}
 			strrep Text(cnt),"#### ",""

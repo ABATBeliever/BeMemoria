@@ -9,7 +9,7 @@
 	if Var_isForceTop {gsel 1,2}else{gsel 1,1}
 	input dummy:objenable 0,0
 	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(40)
-	dummy={"€”õ’†@0.4‚ÅÀ‘•—\’è ‚Ü‚à‚È‚­–ß‚è‚Ü‚·"}
+	dummy={"€”õ’†@0.5‚ÅÀ‘•—\’è ‚Ü‚à‚È‚­–ß‚è‚Ü‚·"}
 	font "",TrueScale(20)
 	mesbox dummy,,,0,0
 	await 5000

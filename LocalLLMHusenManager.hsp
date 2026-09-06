@@ -1,0 +1,109 @@
+
+*AIManager_Normal_AddHusen
+	gsel 2,-1
+	screen 3,TrueScale(640),TrueScale(480),0
+	hWndList(3)=hwnd
+	GetWindowLong hwnd, -16
+	SetWindowLong hwnd, -16, stat - $80000
+	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": ﾛｰｶﾙAIに与える付箋を選ぶ":font "",TrueScale(32):objmode 2
+	if Var_isForceTop {gsel 3,2}else{gsel 3,1}
+	input dummy:objenable 0,0
+	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(60)
+	dummy={"ﾛｰｶﾙAIが読み込める付箋を選んでください。\nAIの性能が低い場合、多くを選択すると混乱するかもしれません。"}
+	font "",TrueScale(20)
+	mesbox dummy,,,0,0
+
+	dim NoIncludeCnt : dim IncludeCnt
+	sdim NoIncludeList : sdim IncludeList
+	dim IncludeListInternal
+	
+	repeat length(ValidMemoList)
+		IncludeListInternal(cnt)=0
+	loop
+	pos              0,TrueScale(100):objsize TrueScale(340),TrueScale(50) :dummy="利用しない":input dummy:objenable 2,0
+	pos TrueScale(320),TrueScale(100):objsize TrueScale(340),TrueScale(50) :dummy="利用する"  :input dummy:objenable 3,0
+	pos              0,TrueScale(140):objsize TrueScale(250),TrueScale(200):listbox NoIncludeCnt,,NoIncludeList
+	pos TrueScale(390),TrueScale(140):objsize TrueScale(250),TrueScale(200):listbox IncludeCnt,,IncludeList
+	gosub *RenderHusenList
+	
+	pos TrueScale(250),TrueScale(140):objsize TrueScale(140),TrueScale(50):button "---->",*AddHusenInclude
+	pos TrueScale(250),TrueScale(190):objsize TrueScale(140),TrueScale(50):button "<----",*RemoveHusenInclude
+	pos TrueScale(250),TrueScale(240):objsize TrueScale(140),TrueScale(50):button "全て利用する",		*SelHusenAllPositive
+	pos TrueScale(250),TrueScale(290):objsize TrueScale(140),TrueScale(50):button "全て利用しない",	*SelHusenAllNegative
+
+	pos              0,TrueScale(430):objsize TrueScale(640),TrueScale( 50):button "決定する",*AIManager_Normal_HusenOK
+stop
+
+*RenderHusenList
+	sdim NoIncludeList : sdim IncludeList
+	flag=0	//1つめかどうか
+	repeat length(ValidMemoList)
+		sdim tmp
+		tmp=ValidMemoList(cnt)
+		if flag{
+			if IncludeListInternal(cnt){
+				IncludeList+="\n"+LoadMemoFirstText(ValidMemoList(cnt))+"... ("+tmp+")"
+				NoIncludeList+="\n---"
+			}else{
+				NoIncludeList+="\n"+LoadMemoFirstText(ValidMemoList(cnt))+"... ("+tmp+")"
+				IncludeList+="\n---"
+			}
+		}else{
+			if IncludeListInternal{
+				IncludeList=LoadMemoFirstText(ValidMemoList(cnt))+"... ("+tmp+")"
+				NoIncludeList="---"
+			}else{
+				NoIncludeList=LoadMemoFirstText(ValidMemoList(cnt))+"... ("+tmp+")"
+				IncludeList="---"
+			}
+			flag=1
+		}
+	loop
+	objprm 4,NoIncludeList
+	objprm 5,IncludeList
+return
+
+*AddHusenInclude
+	if NoIncludeCnt>length(ValidMemoList):dialog "エラー "+NoIncludeCnt+"/"+length(ValidMemoList)
+	IncludeListInternal(NoIncludeCnt)=1
+	gosub *RenderHusenList
+stop
+
+*RemoveHusenInclude
+	if IncludeCnt>length(ValidMemoList):dialog "エラー "+IncludeCnt+"/"+length(ValidMemoList)
+	IncludeListInternal(IncludeCnt)=0
+	gosub *RenderHusenList
+stop
+
+*SelHusenAllPositive
+	repeat length(ValidMemoList)
+		IncludeListInternal(cnt)=1
+	loop
+	gosub *RenderHusenList
+stop
+*SelHusenAllNegative
+	repeat length(ValidMemoList)
+		IncludeListInternal(cnt)=0
+	loop
+	gosub *RenderHusenList
+stop
+	
+*AIManager_Normal_HusenOK
+	dim UseHusenNum
+	sdim tmp
+	repeat length(ValidMemoList)
+		if IncludeListInternal(cnt){
+			tmp+="\n・"+LoadMemoFirstText(ValidMemoList(cnt))
+			UseHusenNum++
+		}
+	loop
+	if UseHusenNum=0{
+		tmp = "付箋は利用しません"
+	}else{
+		tmp = "以下の"+str(UseHusenNum)+" つの付箋を利用します。\n"+tmp
+	}
+	dialog tmp
+	gsel 3,-1
+	if Var_isForceTop {gsel 2,2}else{gsel 2,1}
+stop

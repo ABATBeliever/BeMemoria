@@ -1,5 +1,5 @@
 /*
- BeMemoria v0.3 [Alpha]
+ BeMemoria v0.4 [Alpha]
  Made by ABATBeliever
 
  https://abatbeliever.net
@@ -23,11 +23,11 @@
 
 //定数
 AppName          = "BeMemoria"
-AppVer           = "0.3"
-AppVerInt        = "0.3"
+AppVer           = "0.4"
+AppVerInt        = "0.4"
 
 //エラーハンドリング
-//onerror *onerror_handle
+onerror *onerror_handle
 //終了時の処理の予約
 onexit *exit
 
@@ -112,14 +112,14 @@ pos 480,TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "更新確
 gosub *DisplayMode0
 pos   0,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "新しい付箋を書く",		*NewMemo
 pos 160,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "付箋を編集/削除",		*SelectMemo
-pos 320,TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "ﾛｰｶﾙAIに尋ねる",	*DisplayMode0
+pos 320,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "ﾛｰｶﾙAIに尋ねる",		*AIManager_SelGUI
 pos 480,TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "設定",			*Setting_GUI
 
 /*
 0     : ようこそ画面
 1     : 設定画面
 2     : AIウィンドウ
-3     : 新しいメモ / メモを編集
+3     : 新しいメモ / メモを編集 / AI付箋管理
 4以上 : memo
 */
 
@@ -135,7 +135,8 @@ stop
 #include "DisplayModeManager.hsp"
 #include "NewMemo.hsp"
 #include "SettingsGUISystem.hsp"
-
+#include "LocalLLMManager.hsp"
+stop
 *onerror_handle
 	tmp ="重大な問題が発生しました。\n"+AppName+"を終了します。\n\n"
 	tmp+="ﾊﾞｰｼﾞｮﾝ:"+AppVer+"\n"

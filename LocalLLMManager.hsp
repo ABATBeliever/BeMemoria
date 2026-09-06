@@ -1,0 +1,358 @@
+*AIManager_SelGUI
+	if IsCanUseAI!=1{dialog "./llm/フォルダ内にLLMTextCoreが配置されていません。\n詳しくはReadme.txtを参照。":stop}
+	gsel 0,-1
+	screen 2,TrueScale(640),TrueScale(480),0
+	hWndList(2)=hwnd
+	GetWindowLong hwnd, -16
+	SetWindowLong hwnd, -16, stat - $80000
+	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": ﾛｰｶﾙAIに尋ねる":font "",TrueScale(32):objmode 2
+	if Var_isForceTop {gsel 2,2}else{gsel 2,1}
+	input dummy:objenable 0,0
+	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(240)
+	dummy={"利用可能なモデルをスキャンしています..."}
+	font "",TrueScale(20)
+	mesbox dummy,,,0,0
+	sdim LLMModelList : dim LLMModelListCnt : LLMModelList=""
+	pos              0,TrueScale(280):objsize TrueScale(640),TrueScale(50):listbox LLMModelListCnt,,LLMModelList	:	objenable 2,0
+	pos              0,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "キャンセル",*AIManager_Close		:	objenable 3,0
+	pos TrueScale(160),TrueScale(430):objsize TrueScale(480),TrueScale(50):button "読み込む",*AIManager_LoadModel	:	objenable 4,0
+goto *AIManager_ScanModel
+
+*AIManager_Close
+	gsel 2,-1
+	if Var_isForceTop {gsel 0,2}else{gsel 0,1}
+stop
+
+#defcfunc IsThisModelValid str p1
+	sdim res,65535
+	logmes dir_cur+"/llm/LLMTextCore.exe -l "+dir_cur+"/llm/\""+p1+"\""
+	pipeexec res,dir_cur+"/llm/LLMTextCore.exe -l  "+dir_cur+"/llm/\""+p1+"\""
+	sdim dummy,65535
+	repeat
+		pipeget dummy,0	//ここでバッファオーバーフローする
+		if stat=0:break
+		await 10
+	loop
+if instr(res,0,"OK")=0 {return 1}else{return 0}
+
+#defcfunc GetModelInfo str p1
+	sdim res,65535
+	logmes "[LOAD] "+dir_cur+"/llm/LLMTextCore.exe -i "+dir_cur+"/llm/\""+p1+"\""
+	pipeexec res,dir_cur+"/llm/LLMTextCore.exe -i  "+dir_cur+"/llm/\""+p1+"\""
+	sdim dummy,65535
+	repeat
+		pipeget dummy,0
+		if stat=0:break
+		await 10
+	loop
+return res
+
+#defcfunc OutPutTemporaryData str p1
+	sdim res,65535
+	logmes "[LOAD] "+dir_cur+"/llm/LLMTextCore.exe -i "+dir_cur+"/llm/\""+p1+"\""
+	pipeexec res,dir_cur+"/llm/LLMTextCore.exe -i  "+dir_cur+"/llm/\""+p1+"\""
+	sdim dummy,65535
+	repeat
+		pipeget dummy,0
+		if stat=0:break
+		await 10
+	loop
+return res
+
+#deffunc SetShowData
+	sdim OutPutDatSTR
+return
+
+#defcfunc ShowTemporaryData str p1
+return OutPutDatSTR+p1
+
+#defcfunc ShowStableData str p1
+	OutPutDatSTR+p1
+return OutPutDatSTR
+
+*AIManager_ScanModel
+	sdim ValidModelList
+	sdim TempModelList
+	dim flag			//配列は最初の代入か否か
+
+	dirlist TempModelList,dir_cur+"/llm/*.gguf",3
+	logmes TempModelList
+	notesel TempModelList
+	if notemax=0{noteunsel:goto *AIManager_Scan_NoValids}
+	repeat notemax
+		logmes ""+str(cnt+1)+"/"+str(notemax)
+		sdim tmp
+		noteget tmp,cnt
+		if IsThisModelValid(tmp){
+			if flag{
+				ValidModelList(length(ValidModelList))=tmp
+				logmes "valid (not first) "+tmp
+			}else{
+				ValidModelList=tmp
+				logmes "valid (first) "+tmp
+				flag=1
+			}
+		}else{logmes "invalid "+tmp}
+	loop
+	noteunsel
+	if length(ValidModelList)=1 and ValidModelList(0)=""{goto *AIManager_Scan_NoValids}
+	LLMModelList=ValidModelList(0)
+	repeat length(ValidModelList)-1
+		LLMModelList+="\n"+ValidModelList(cnt+1)
+	loop
+	dummy =""+str(length(ValidModelList))+"件のAIが有効に読み込めました。\n\n"
+	dummy+="使用したいAIモデルを選択してください。\n\n"
+	dummy+="「キャンセル」を押して戻ります。\n再スキャンするにはこのページを開きなおしてください。\n\n"
+	dummy+="※読み込めないファイルがある場合、./llm/フォルダにあるLLMTextCoreが古い可能性があります。\nhttps://github.com/ABATBeliever/LLMTextCore/releases から最新版をダウンロードし、配置すると読み込めるかもしれません。"
+	objprm 1,dummy
+	objprm 2,LLMModelList:objenable 2,1
+	objenable 3,1:objenable 4,1
+	stop
+
+*AIManager_Scan_NoValids
+	objenable 3,1
+	dummy ="現在、読み込めるAIモデルが1つもありません。\n\n"
+	dummy+="好きな(.gguf)形式のAIモデルを./llm/フォルダに配置してください。\n"
+	dummy+="詳しくは、readme.txtを参照してください。\n\n"
+	dummy+="「キャンセル」を押して戻ります。開きなおして再スキャン。\n\n"
+	dummy+="※読み込めないファイルがある場合、./llm/フォルダにあるLLMTextCoreが古い可能性があります。\nhttps://github.com/ABATBeliever/LLMTextCore/releases から最新版をダウンロードし、配置すると読み込めるかもしれません。"
+	objprm 1,dummy
+	stop
+
+*AIManager_LoadModel
+	objenable 2,0:objenable 3,0:objenable 4,0
+	dialog ""+ValidModelList(LLMModelCnt)+" を読み込みます。\nよろしいですか?\n-------------\n"+GetModelInfo(ValidModelList(LLMModelCnt)),2,LLMTextCoreVersion
+	if stat=7{objenable 2,1:objenable 3,1:objenable 4,1:return}
+	goto *AIManager_Normal_GUI
+
+*AIManager_Normal_GUI
+	screen 2,TrueScale(640),TrueScale(480),0
+	hWndList(2)=hwnd
+	GetWindowLong hwnd, -16
+	SetWindowLong hwnd, -16, stat - $80000
+	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": ﾛｰｶﾙAIに尋ねる - 会話モード":font "",TrueScale(32):objmode 2
+	if Var_isForceTop {gsel 2,2}else{gsel 2,1}
+	input dummy:objenable 0,0
+	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(290)
+	dummy="下の欄に尋ねたいことを入力し「送信」を押してください。\n\n付箋を読み込ませたい場合は「付箋を添付する」で選んでください。\n(AIは指定された付箋を読み込めますが、編集できません。)"
+	font "",TrueScale(18)
+	mesbox dummy,,,0,0 : DisplayMSGBoxHWND = objinfo(stat, 2)
+	font "",TrueScale(20)
+	dim UseHusenNum
+	sdim UserInput
+	pos 0,TrueScale(330):objsize TrueScale(640),TrueScale(100):mesbox UserInput
+	pos              0,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "終了",			*AIManager_Close
+	pos TrueScale(160),TrueScale(430):objsize TrueScale(160),TrueScale(50):button "編集モードへ",	*AIManager_EditMode_GUI_Select
+	pos TrueScale(320),TrueScale(430):objsize TrueScale(160),TrueScale(50):button "付箋を添付する",	*AIManager_Normal_AddHusen
+	pos TrueScale(480),TrueScale(430):objsize TrueScale(160),TrueScale(50):button "送信",			*AIManager_Normal_Start
+	SetShowData
+stop
+
+#include "LocalLLMHusenManager.hsp"
+
+*AIManager_Normal_Start
+	strrep UserInput," ",""
+	strrep UserInput,"　",""
+	strrep UserInput,"	",""
+	strrep UserInput,"\"","'"
+	notesel UserInput
+	sdim tmp : sdim PostText
+	repeat notemax
+		noteget tmp,cnt
+		PostText+=tmp
+	loop
+	if PostText="" { dialog "入力してください" : stop}
+	objenable 2,0 : objenable 3,0 : objenable 4,0 : objenable 5,0 : objenable 6,0
+	
+	sdim res,65535
+	if UseHusenNum=0{
+		objprm 1,ShowStableData("[あなた]\n"+UserInput)
+		logmes "[付箋無] "+dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+PostText+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\""
+		pipeexec res,dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+PostText+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\""
+	}else{
+		objprm 1,ShowStableData("[あなた]\n"+UserInput+"\n☆"+str(UseHusenNum)+"つの付箋を添付しました☆")
+		sdim tmp
+		tmp="ここからは付箋の情報です。話題と関係ない付箋が含まれている場合は無視して良いです。"
+		repeat length(ValidMemoList)
+			if IncludeListInternal(cnt){
+				tmp+="付箋「"+LoadMemoFirstText(ValidMemoList(cnt))+"」の内容:「"+LoadMemoText(ValidMemoList(cnt))+"」"
+				strrep tmp,"[EOF]",""
+			}
+		loop
+		logmes "[付箋有] "+dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+PostText+" "+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\""
+		pipeexec res,dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+PostText+" "+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\""
+	}
+	sdim dummy,65535
+	sdim tmp,65535
+	repeat
+		pipeget dummy,0
+		if stat=0:break
+		tmp+=dummy
+		objprm 1,ShowTemporaryData("\n\n["+ValidModelList(LLMModelCnt)+" が応答中]\n"+tmp+"\n\n")
+		sendmsg DisplayMSGBoxHWND, 0x00B5, 7, 0
+		await 300
+	loop
+	//<think>があれば除去する
+	dim IsNowThinkPart
+	sdim AIResponse,65535
+	notesel res
+	repeat notemax
+		sdim tmp
+		noteget tmp,cnt
+		strrep tmp,"*",""
+		strrep tmp,"- ","・"
+		if instr(tmp,0,"<think>")=0	{IsNowThinkPart=1:continue}
+		if instr(tmp,0,"</think>")=0{IsNowThinkPart=0:continue}
+		if IsNowThinkPart{continue}
+		if tmp=""{continue}
+		AIResponse+="\n"+tmp
+	loop
+	noteunsel
+	objprm 1,ShowStableData("\n\n["+ValidModelList(LLMModelCnt)+"]"+AIResponse+"\n\n")
+	sendmsg DisplayMSGBoxHWND, 0x00B5, 7, 0
+	UserInput="" : objprm 2,"" : objenable 2,1 : objenable 3,1 : objenable 4,1 : objenable 5,1 : objenable 6,1
+stop
+
+*AIManager_EditMode_GUI_Select
+	screen 2,TrueScale(640),TrueScale(480),0
+	hWndList(2)=hwnd
+	GetWindowLong hwnd, -16
+	SetWindowLong hwnd, -16, stat - $80000
+	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": ﾛｰｶﾙAIに尋ねる - 編集モード":font "",TrueScale(32):objmode 2
+	if Var_isForceTop {gsel 2,2}else{gsel 2,1}
+	input dummy:objenable 0,0
+	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(40)
+	dummy={"編集させたい付箋を1つ選んでください"}
+	font "",TrueScale(18)
+	mesbox dummy,,,0,0
+	font "",TrueScale(20)
+
+	dim TmpDisplayCnt
+	sdim TmpDisplayList
+	flag=0	//1つめかどうか
+	repeat length(ValidMemoList)
+		sdim tmp
+		tmp=ValidMemoList(cnt)
+		if flag{
+			TmpDisplayList+="\n"+LoadMemoFirstText(ValidMemoList(cnt))+"... ("+tmp+")"
+		}else{
+			TmpDisplayList=LoadMemoFirstText(ValidMemoList(cnt))+"... ("+tmp+")"
+			flag=1
+		}
+	loop
+	noteunsel
+	objsize TrueScale(640),TrueScale(260)
+	listbox TmpDisplayCnt,,TmpDisplayList
+	pos              0,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "終了",			*AIManager_Close
+	pos TrueScale(160),TrueScale(430):objsize TrueScale(480),TrueScale(50):button "この付箋を使う",*AIManager_EditMode_SelectAsk
+stop
+
+*AIManager_EditMode_SelectAsk
+	dialog "付箋「"+ValidMemoList(TmpDisplayCnt)+"」を編集させます、よろしいですか?",2
+	if stat=7{stop}
+goto *AIManager_EditMode_GUI
+
+*AIManager_EditMode_GUI
+	screen 2,TrueScale(640),TrueScale(480),0
+	hWndList(2)=hwnd
+	GetWindowLong hwnd, -16
+	SetWindowLong hwnd, -16, stat - $80000
+	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": ﾛｰｶﾙAIに尋ねる - 編集モード":font "",TrueScale(32):objmode 2
+	if Var_isForceTop {gsel 2,2}else{gsel 2,1}
+	input dummy:objenable 0,0
+	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(290)
+	dummy=LoadMemoText(ValidMemoList(TmpDisplayCnt))
+	strrep dummy,",","\n"
+	strrep dummy,"[EOF]",""
+	dummy="AIに伝えたいことがあれば下の欄に端的に入力し、「はじめる」を押して開始\n現在の内容:\n\n"+dummy
+	font "",TrueScale(18)
+	mesbox dummy,,,0,0 : DisplayMSGBoxHWND = objinfo(stat, 2)
+	font "",TrueScale(20)
+	dim UseHusenNum
+	sdim UserInput
+	pos 0,TrueScale(330):objsize TrueScale(640),TrueScale(100):mesbox UserInput
+	pos              0,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "終了",			*AIManager_Close
+	pos TrueScale(160),TrueScale(430):objsize TrueScale(160),TrueScale(50):button "会話モードへ",	*AIManager_Normal_GUI
+	pos TrueScale(320),TrueScale(430):objsize TrueScale(320),TrueScale(50):button "はじめる",		*AIManager_EditMode_Start
+stop
+
+*AIManager_EditMode_Start
+	clrobj 4
+	pos TrueScale(160),TrueScale(430):objsize TrueScale(160),TrueScale(50):button "リトライする",	*AIManager_EditMode_Start
+	pos TrueScale(320),TrueScale(430):objsize TrueScale(320),TrueScale(50):button "受け入れる",		*AIManager_EditMode_Override
+	SetShowData
+	objprm 1,ShowStableData("AIが推論しています。しばらくお待ちください...")
+	objenable 2,0 : objenable 3,0 : objenable 4,0 : objenable 5,0
+	strrep UserInput," ",""
+	strrep UserInput,"　",""
+	strrep UserInput,"	",""
+	strrep UserInput,"\"","'"
+	notesel UserInput
+	sdim tmp : sdim PostText
+	repeat notemax
+		noteget tmp,cnt
+		PostText+=tmp
+	loop
+	sdim tmp
+	sdim res,65535
+	tmp=LoadMemoText(ValidMemoList(TmpDisplayCnt))
+	strrep tmp,"[EOF]",""
+	if PostText=""{
+		logmes "[指示なし] "+dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。文章を要約してください。\""
+		pipeexec res,dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。文章を要約してください。\""
+	}else{
+		logmes "[指示有り] "+dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。指示「"+PostText+"」に従って文章を要約してください。\""
+		pipeexec res,dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。指示「"+PostText+"」に従って文章を要約してください。\""
+	}
+	sdim dummy,65535
+	sdim tmp,65535
+	repeat
+		pipeget dummy,0
+		if stat=0:break
+		tmp+=dummy
+		objprm 1,ShowTemporaryData("\n\n["+ValidModelList(LLMModelCnt)+" が応答中]\n"+tmp+"\n\n")
+		sendmsg DisplayMSGBoxHWND, 0x00B5, 7, 0
+		await 300
+	loop
+	//<think>があれば除去する
+	dim IsNowThinkPart
+	sdim AIResponse,65535
+	notesel res
+	repeat notemax
+		sdim tmp
+		noteget tmp,cnt
+		strrep tmp,"*",""
+		strrep tmp,"- ","・"
+		if instr(tmp,0,"<think>")=0	{IsNowThinkPart=1:continue}
+		if instr(tmp,0,"</think>")=0{IsNowThinkPart=0:continue}
+		if IsNowThinkPart{continue}
+		if tmp=""{continue}
+		AIResponse+="\n"+tmp
+	loop
+	noteunsel
+	SetShowData
+	objprm 1,ShowStableData("["+ValidModelList(LLMModelCnt)+"] は以下の新しい案を作成しました。\n\n受け入れて上書き保存する場合は「受け入れる」を、\nもう一度挑戦したい場合は「リトライする」を押してください。\nその場合、AIに伝えたいことがあれば下の欄に端的に入力してください。\n"+AIResponse)
+	sendmsg DisplayMSGBoxHWND, 0x00B5, 7, 0
+	UserInput="" : objprm 2,"" : objenable 2,1 : objenable 3,1 : objenable 4,1 : objenable 5,1
+stop
+
+*AIManager_EditMode_Override
+	gosub *SaveMemoMetaData
+	sdim tmp
+	tmp=LoadMemoMetaData(ValidMemoList(TmpDisplayCnt))
+	split tmp,",",tmp
+	NewMemoDraft="[info]\npos_x="+str(tmp(0))+"\npos_y="+str(tmp(1))+"\nsize_x="+str(tmp(2))+"\nsize_y="+str(tmp(3))+"\n\n[Content]\n"+AIResponse
+	delete dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
+	notesel NewMemoDraft
+	notesave dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
+	noteunsel
+	repeat length(ValidMemoList)
+		gsel (4+cnt),-1
+	loop
+	gosub *MemoListLoad
+	gosub *SetMemo
+	goto *AIManager_Close
