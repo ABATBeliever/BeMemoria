@@ -33,7 +33,7 @@ if IsCanUseAI{
 	sdim LLMTextCoreVersion
 	pipeexec LLMTextCoreVersion,dir_cur+"/llm/LLMTextCore.exe -v"
 	if stat{
-		IsCanUserAI=0
+		IsCanUseAI=0
 	}else{
 		sdim dummy
 		repeat
@@ -41,6 +41,26 @@ if IsCanUseAI{
 			if stat=0:break
 			await 10
 		loop
-		IsCanUseAI=1
+		
+		sdim LLMTextCoreAPILevel
+		pipeexec LLMTextCoreAPILevel,dir_cur+"/llm/LLMTextCore.exe --api-level"
+		if stat{
+			IsCanUseAI=0
+		}else{
+			sdim dummy
+			repeat
+				pipeget dummy
+				if stat=0:break
+				await 10
+			loop
+			split UseLLMTextCoreAPILevel,".",UseLLMTextCoreAPILevelMajor,UseLLMTextCoreAPILevelMinor
+			split LLMTextCoreAPILevel,".",LLMTextCoreAPILevelMajor,LLMTextCoreAPILevelMinor
+			// メジャーバージョンは同じでなければならない              /  マイナーバージョンは必要とする数字以上でなければならない
+			if (UseLLMTextCoreAPILevelMajor=LLMTextCoreAPILevelMajor) and (int(UseLLMTextCoreAPILevelMinor)<=int(LLMTextCoreAPILevelMinor)){
+				IsCanUseAI=1
+			}else{
+				IsCanUseAI=0
+			}
+		}
 	}
 }

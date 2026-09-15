@@ -33,9 +33,9 @@ return
 	}
 	tmp+="\n\nローカルAIモジュール:"
 	if IsCanUseAI{
-		tmp+="利用可能\n>>"+LLMTextCoreVersion
+		tmp+="利用可能\n>>"+LLMTextCoreVersion+"必要な	APIレベル:"+UseLLMTextCoreAPILevel+"\nﾓｼﾞｭｰﾙの	APIレベル:"+LLMTextCoreAPILevel
 	}else{
-		tmp+="利用不能"
+		tmp+="利用不能\n必要なAPIレベル:"+UseLLMTextCoreAPILevel+"\nﾓｼﾞｭｰﾙのAPIレベル: -"
 	}
 	gosub *DisplayDo
 return

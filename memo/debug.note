@@ -1,8 +1,9 @@
 [info]
-pos_x=1323
-pos_y=307
+pos_x=1457
+pos_y=442
 size_x=306
 size_y=266
+isForceTop=1
 
 [Content]
 # h1

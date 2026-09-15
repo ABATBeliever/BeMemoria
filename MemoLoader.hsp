@@ -9,8 +9,9 @@
 		sdim tmp	:	noteget tmp,2	:	if 0!=instr(tmp,0,"pos_y=")	 	{logmes "out3":noteunsel:return 1}
 		sdim tmp	:	noteget tmp,3	:	if 0!=instr(tmp,0,"size_x=") 	{logmes "out4":noteunsel:return 1}
 		sdim tmp	:	noteget tmp,4	:	if 0!=instr(tmp,0,"size_y=")	{logmes "out5":noteunsel:return 1}
+		sdim tmp	:	noteget tmp,5	:	if 0!=instr(tmp,0,"isForceTop="){logmes "out6":noteunsel:return 1}
 
-		sdim tmp:noteget tmp,6:if tmp!="[Content]"							{logmes "out6":noteunsel:return 1}
+		sdim tmp:noteget tmp,7:if tmp!="[Content]"							{logmes "out7":noteunsel:return 1}
 		noteunsel
 	return 0
 	
@@ -19,10 +20,11 @@
 		sdim res
 		notesel buffers
 		noteload dir_cur+"/memo/"+p1
-		sdim tmp	:	noteget tmp,1	:	strrep tmp,"pos_x=",""	:	if str(tmp)=""{tmp=100}	:	res =    str(tmp)
-		sdim tmp	:	noteget tmp,2	:	strrep tmp,"pos_y=",""	:	if str(tmp)=""{tmp=100}	:	res+=","+str(tmp)
-		sdim tmp	:	noteget tmp,3	:	strrep tmp,"size_x=",""	:	if str(tmp)=""{tmp=100}	:	res+=","+str(tmp)
-		sdim tmp	:	noteget tmp,4	:	strrep tmp,"size_y=",""	:	if str(tmp)=""{tmp=100}	:	res+=","+str(tmp)
+		sdim tmp	:	noteget tmp,1	:	strrep tmp,"pos_x=",""	    :	if str(tmp)=""{tmp=100}	:	res =    str(tmp)
+		sdim tmp	:	noteget tmp,2	:	strrep tmp,"pos_y=",""	    :	if str(tmp)=""{tmp=100}	:	res+=","+str(tmp)
+		sdim tmp	:	noteget tmp,3	:	strrep tmp,"size_x=",""	    :	if str(tmp)=""{tmp=100}	:	res+=","+str(tmp)
+		sdim tmp	:	noteget tmp,4	:	strrep tmp,"size_y=",""	    :	if str(tmp)=""{tmp=100}	:	res+=","+str(tmp)
+		sdim tmp	:	noteget tmp,5	:	strrep tmp,"isForceTop=",""	:	if str(tmp)=""{tmp=1}	:	res+=","+str(tmp)
 		noteunsel
 	return res
 	
@@ -34,7 +36,7 @@
 		notesel buffers
 		noteload dir_cur+"/memo/"+p1
 		repeat notemax
-			if cnt<7 : continue
+			if cnt<8 : continue
 			noteget tmp,cnt
 			strrep tmp,",","-"
 			if tmp=""{tmp="空っぽです":continue}else{break}
@@ -50,7 +52,7 @@
 		notesel buffers
 		noteload dir_cur+"/memo/"+p1
 		repeat notemax
-			if cnt<7 : continue
+			if cnt<8 : continue
 			noteget tmp,cnt
 			strrep tmp,",","-"
 			res+=tmp+","
@@ -59,7 +61,7 @@
 		noteunsel
 	return res
 
-	#deffunc SaveMemoMetaDataTaskDo str p1, int p2
+	#deffunc SaveMemoMetaDataTaskDo str p1, int p2, int p3
 		Setini_File dir_cur+"/memo/"+p1
 		if ginfo(25)=p2 or ginfo(25)<p2{dialog "デバッグ情報0x06 MemoLoader "+ginfo(25):return}
 		gsel p2
@@ -67,6 +69,7 @@
 		Setini_int "info","pos_y",ginfo(5)
 		Setini_int "info","size_x",ginfo(10)
 		Setini_int "info","size_y",ginfo(11)
+		Setini_int "info","isForceTop",p3
 	return
 #global
 
@@ -99,16 +102,18 @@ return
 
 *SetMemo
 	sdim ValidMemoTitleList
+	dim isMemoForceTopList
 	repeat length(ValidMemoList)
 		sdim tmp
 		if ValidMemoList(cnt)="" : continue
 		tmp=LoadMemoMetaData(ValidMemoList(cnt))
-		dim pos_x : dim pos_y : dim size_x : dim size_y
-		split tmp,",",pos_x,pos_y,size_x,size_y,ValidMemoTitleList(cnt)
+		dim pos_x : dim pos_y : dim size_x : dim size_y : sdim ForceTopTmp
+		split tmp,",",pos_x,pos_y,size_x,size_y,ForceTopTmp,ValidMemoTitleList(cnt)
 		pos_x =int(pos_x)  : pos_y =int(pos_y)
 		size_x=int(size_x) : size_y=int(size_y)
-		if ginfo(20)+100 < pos_x {pos_x=ginfo(20)+100}
-		if ginfo(21)+100 < pos_y {pos_y=ginfo(21)+100}
+		isMemoForceTopList(cnt)=int(ForceTopTmp)
+		if ginfo(20)+100 < pos_x or 0 > pos_x {pos_x=ginfo(20)+100}
+		if ginfo(21)+100 < pos_y or 0 > pos_y {pos_y=ginfo(21)+100}
 		if size_x>1000 {size_x=1000}
 		if size_y>750 {size_y=750}
 		bgscr (4+cnt),1000,750,screen_hide,pos_x,pos_y,size_x,size_y
@@ -154,7 +159,7 @@ return
 		NowMaxSize_Y+=TrueScale(20)
 		pos NowMaxSize_X,NowMaxSize_Y:mes "+"		
 		width NowMaxSize_X,NowMaxSize_Y
-		if Var_isForceTop {gsel (4+cnt),2}else{gsel (4+cnt),1}
+		if isMemoForceTopList(cnt) {gsel (4+cnt),2}else{gsel (4+cnt),1}
 	loop
 	onclick gosub *onjump
 gsel 0
@@ -162,6 +167,6 @@ return
 
 *SaveMemoMetaData
 	repeat length(ValidMemoList)
-		SaveMemoMetaDataTaskDo ValidMemoList(cnt),(4+cnt)
+		SaveMemoMetaDataTaskDo ValidMemoList(cnt),(4+cnt),isMemoForceTopList(cnt)
 	loop
 return

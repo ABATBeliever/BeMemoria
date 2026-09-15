@@ -26,20 +26,20 @@ stop
 
 #defcfunc IsThisModelValid str p1
 	sdim res,65535
-	logmes dir_cur+"/llm/LLMTextCore.exe -l "+dir_cur+"/llm/\""+p1+"\""
-	pipeexec res,dir_cur+"/llm/LLMTextCore.exe -l  "+dir_cur+"/llm/\""+p1+"\""
+	logmes dir_cur+"/llm/LLMTextCore.exe -l -m "+dir_cur+"/llm/\""+p1+"\""
+	pipeexec res,dir_cur+"/llm/LLMTextCore.exe -l -m "+dir_cur+"/llm/\""+p1+"\""
 	sdim dummy,65535
 	repeat
-		pipeget dummy,0	//ここでバッファオーバーフローする
+		pipeget dummy,0
 		if stat=0:break
 		await 10
 	loop
-if instr(res,0,"OK")=0 {return 1}else{return 0}
+if instr(res,0,"OK")=0 {return 1}else{dialog "モデル「"+p1+"」を読み込むことができませんでした。\n./llm/フォルダ内のAIモジュールを更新することで、扱えるようになるかもしれません。\n詳しくはREADME.TXTを参照。\n\n"+LLMTextCoreVersion+"\nエラー内容:\n"+res,1:return 0}
 
 #defcfunc GetModelInfo str p1
 	sdim res,65535
-	logmes "[LOAD] "+dir_cur+"/llm/LLMTextCore.exe -i "+dir_cur+"/llm/\""+p1+"\""
-	pipeexec res,dir_cur+"/llm/LLMTextCore.exe -i  "+dir_cur+"/llm/\""+p1+"\""
+	logmes "[LOAD] "+dir_cur+"/llm/LLMTextCore.exe -i -m "+dir_cur+"/llm/\""+p1+"\""
+	pipeexec res,dir_cur+"/llm/LLMTextCore.exe -i  -m "+dir_cur+"/llm/\""+p1+"\""
 	sdim dummy,65535
 	repeat
 		pipeget dummy,0
@@ -169,8 +169,20 @@ stop
 	sdim res,65535
 	if UseHusenNum=0{
 		objprm 1,ShowStableData("[あなた]\n"+UserInput)
-		logmes "[付箋無] "+dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+PostText+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\""
-		pipeexec res,dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+PostText+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\""
+		CallExec =""+dir_cur+"/llm/LLMTextCore.exe "									//実行ファイル
+		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" "		//モデル指定
+		CallExec+="-p \""+PostText+"\" "												//プロンプト
+		CallExec+="-s \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\" "	//システムプロンプト
+		CallExec+="--temp 0.7 "															//temperature
+		CallExec+="--max-tokens 65535 "													//最大トークン
+		CallExec+="--n-ctx 4096 "														//コンテキスト長
+		CallExec+="--top-p 0.95 "														//nucleus sampling
+		CallExec+="--repeat-penalty 1.0 "												//繰り返し抑制
+		CallExec+="--penalty-last-n 64 "												//repeat-penalty対象トークン数
+		CallExec+="--stream "															//トークンを逐次出力する
+//		CallExec+="--think-cut "														//思考を分離
+//		CallExec+="--think-start hoge --think-end huga "								//thinkタグの指定
+		logmes "[付箋無] "+CallExec
 	}else{
 		objprm 1,ShowStableData("[あなた]\n"+UserInput+"\n☆"+str(UseHusenNum)+"つの付箋を添付しました☆")
 		sdim tmp
@@ -181,18 +193,32 @@ stop
 				strrep tmp,"[EOF]",""
 			}
 		loop
-		logmes "[付箋有] "+dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+PostText+" "+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\""
-		pipeexec res,dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+PostText+" "+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\""
+		PostText+=" "+tmp
+		CallExec =""+dir_cur+"/llm/LLMTextCore.exe "									//実行ファイル
+		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" "		//モデル指定
+		CallExec+="-p \""+PostText+"\" "												//プロンプト
+		CallExec+="-s \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\" "	//システムプロンプト
+		CallExec+="--temp 0.7 "															//temperature
+		CallExec+="--max-tokens 65535 "													//最大トークン
+		CallExec+="--n-ctx 4096 "														//コンテキスト長
+		CallExec+="--top-p 0.95 "														//nucleus sampling
+		CallExec+="--repeat-penalty 1.0 "												//繰り返し抑制
+		CallExec+="--penalty-last-n 64 "												//repeat-penalty対象トークン数
+		CallExec+="--stream "															//トークンを逐次出力する
+//		CallExec+="--think-cut "														//思考を分離
+//		CallExec+="--think-start hoge --think-end huga "								//thinkタグの指定
+		logmes "[付箋有] "+CallExec
 	}
+	pipeexec res,CallExec
 	sdim dummy,65535
 	sdim tmp,65535
 	repeat
 		pipeget dummy,0
 		if stat=0:break
 		tmp+=dummy
-		objprm 1,ShowTemporaryData("\n\n["+ValidModelList(LLMModelCnt)+" が応答中]\n"+tmp+"\n\n")
+		objprm 1,ShowTemporaryData("\n\n["+ValidModelList(LLMModelCnt)+"]\n"+tmp+"\n\n")
 		sendmsg DisplayMSGBoxHWND, 0x00B5, 7, 0
-		await 300
+		await 30
 	loop
 	//<think>があれば除去する
 	dim IsNowThinkPart
@@ -209,7 +235,6 @@ stop
 		if tmp=""{continue}
 		AIResponse+="\n"+tmp
 	loop
-	noteunsel
 	objprm 1,ShowStableData("\n\n["+ValidModelList(LLMModelCnt)+"]"+AIResponse+"\n\n")
 	sendmsg DisplayMSGBoxHWND, 0x00B5, 7, 0
 	UserInput="" : objprm 2,"" : objenable 2,1 : objenable 3,1 : objenable 4,1 : objenable 5,1 : objenable 6,1
@@ -302,12 +327,37 @@ stop
 	tmp=LoadMemoText(ValidMemoList(TmpDisplayCnt))
 	strrep tmp,"[EOF]",""
 	if PostText=""{
-		logmes "[指示なし] "+dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。文章を要約してください。\""
-		pipeexec res,dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。文章を要約してください。\""
+		CallExec =""+dir_cur+"/llm/LLMTextCore.exe "									//実行ファイル
+		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" "		//モデル指定
+		CallExec+="-p \""+tmp+"\" "														//プロンプト
+		CallExec+="-s \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。文章を要約してください。\" "	//システムプロンプト
+		CallExec+="--temp 0.7 "															//temperature
+		CallExec+="--max-tokens 65535 "													//最大トークン
+		CallExec+="--n-ctx 4096 "														//コンテキスト長
+		CallExec+="--top-p 0.95 "														//nucleus sampling
+		CallExec+="--repeat-penalty 1.0 "												//繰り返し抑制
+		CallExec+="--penalty-last-n 64 "												//repeat-penalty対象トークン数
+		CallExec+="--stream "															//トークンを逐次出力する
+//		CallExec+="--think-cut "														//思考を分離
+//		CallExec+="--think-start hoge --think-end huga "								//thinkタグの指定
+		logmes "[指示なし] "+CallExec
 	}else{
-		logmes "[指示有り] "+dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。指示「"+PostText+"」に従って文章を要約してください。\""
-		pipeexec res,dir_cur+"/llm/LLMTextCore.exe \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" \""+tmp+"\" 0.7 65535 0 0 1 0 1.5 \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。指示「"+PostText+"」に従って文章を要約してください。\""
+		CallExec =""+dir_cur+"/llm/LLMTextCore.exe "									//実行ファイル
+		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" "		//モデル指定
+		CallExec+="-p \""+tmp+"\" "														//プロンプト
+		CallExec+="-s \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。指示「"+PostText+"」に従って文章を要約してください。\" "	//システムプロンプト
+		CallExec+="--temp 0.7 "															//temperature
+		CallExec+="--max-tokens 65535 "													//最大トークン
+		CallExec+="--n-ctx 4096 "														//コンテキスト長
+		CallExec+="--top-p 0.95 "														//nucleus sampling
+		CallExec+="--repeat-penalty 1.0 "												//繰り返し抑制
+		CallExec+="--penalty-last-n 64 "												//repeat-penalty対象トークン数
+		CallExec+="--stream "															//トークンを逐次出力する
+//		CallExec+="--think-cut "														//思考を分離
+//		CallExec+="--think-start hoge --think-end huga "								//thinkタグの指定
+		logmes "[指示あり] "+CallExec
 	}
+	pipeexec res,CallExec
 	sdim dummy,65535
 	sdim tmp,65535
 	repeat
@@ -345,7 +395,7 @@ stop
 	sdim tmp
 	tmp=LoadMemoMetaData(ValidMemoList(TmpDisplayCnt))
 	split tmp,",",tmp
-	NewMemoDraft="[info]\npos_x="+str(tmp(0))+"\npos_y="+str(tmp(1))+"\nsize_x="+str(tmp(2))+"\nsize_y="+str(tmp(3))+"\n\n[Content]\n"+AIResponse
+	NewMemoDraft="[info]\npos_x="+str(tmp(0))+"\npos_y="+str(tmp(1))+"\nsize_x="+str(tmp(2))+"\nsize_y="+str(tmp(3))+"\nisForceTop="+isMemoForceTopList(TmpDisplayCnt)+"\n\n[Content]"+AIResponse
 	delete dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
 	notesel NewMemoDraft
 	notesave dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)

@@ -100,10 +100,14 @@ stop
 	loop
 	if UseHusenNum=0{
 		tmp = "付箋は利用しません"
+		dummy=": ﾛｰｶﾙAIに尋ねる - 会話モード"
 	}else{
 		tmp = "以下の"+str(UseHusenNum)+" つの付箋を利用します。\n"+tmp
+		dummy=": ﾛｰｶﾙAIに尋ねる - 会話モード (付箋"+str(UseHusenNum)+"つ利用)"
 	}
 	dialog tmp
 	gsel 3,-1
 	if Var_isForceTop {gsel 2,2}else{gsel 2,1}
+	
+	objprm 0,dummy
 stop

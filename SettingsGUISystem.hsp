@@ -7,13 +7,137 @@
 	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
 	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": 設定":font "",TrueScale(32):objmode 2
 	if Var_isForceTop {gsel 1,2}else{gsel 1,1}
+
 	input dummy:objenable 0,0
 	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(40)
-	dummy={"準備中　0.5で実装予定 まもなく戻ります"}
+	dummy="ここで各種設定ができます。全ての設定は次回起動時に反映されます。"
 	font "",TrueScale(20)
 	mesbox dummy,,,0,0
-	await 5000
-	gosub *Setting_GUI_Close
+
+	pos              0,TrueScale(80):objsize TrueScale(320),TrueScale(40)
+	dummy="システム設定":input dummy,,,0:objenable 2,0
+	pos TrueScale(320),TrueScale(80):objsize TrueScale(320),TrueScale(40)
+	dummy="AI設定":input dummy,,,0:objenable 3,0
+	objsize TrueScale(160),TrueScale(40):font "",TrueScale(16)
+	//360 40
+
+	//DPI
+	font "",TrueScale(16)
+	pos              0,TrueScale(120):objsize TrueScale(280),TrueScale(40)
+	dummy="-":mesbox dummy,,,0,0:objenable 4,0
+	pos TrueScale(280),TrueScale(120):objsize TrueScale( 40),TrueScale(40)
+	button gosub "変更",*Setting_DPIModeChange:gosub *Setting_DPIModeChange:gosub *Setting_DPIModeChange:gosub *Setting_DPIModeChange//現在を表示するために3回変える
+
+	pos 0,TrueScale(160):objsize TrueScale(320),TrueScale(40)
+	dummy="ようこそウィンドウを最前面表示する"	:chkbox dummy,Var_isForceTop
+	
+	pos 0,TrueScale(200):objsize TrueScale(320),TrueScale(40)
+	dummy="ようこそウィンドウを自動で隠す"		:chkbox dummy,Var_HideWhenBoot
+
+	pos              0,TrueScale(240):objsize TrueScale(280),TrueScale(40)
+	dummy="画面と付箋のスケール(倍)":input dummy,,,0:objenable 8,0
+	pos TrueScale(280),TrueScale(240):objsize TrueScale(40),TrueScale(40)
+	input Var_ViewScale,,,4
+
+	pos              0,TrueScale(280):objsize TrueScale(280),TrueScale(40)
+	dummy="付箋の透明度(%)":input dummy,,,0:objenable 10,0
+	pos TrueScale(280),TrueScale(280):objsize TrueScale(40),TrueScale(40)
+	sdim Var_OpacitySTR : Var_OpacitySTR=str(100-Var_Opacity):input Var_OpacitySTR,,,4
+
+	pos              0,TrueScale(320):objsize TrueScale(240),TrueScale(40)
+	dummy="付箋の文字色":input dummy,,,0:objenable 12,0
+	color TCol_R,TCol_G,TCol_B : boxf TrueScale(240),TrueScale(320),TrueScale(280),TrueScale(360)
+	pos TrueScale(280),TrueScale(320):objsize TrueScale( 40),TrueScale(40)
+	button gosub "変更",*Setting_TextColor
+
+	pos              0,TrueScale(360):objsize TrueScale(240),TrueScale(40)
+	dummy="付箋の背景色":input dummy,,,0:objenable 14,0
+	color BGCol_R,BGCol_G,BGCol_B : boxf TrueScale(240),TrueScale(360),TrueScale(280),TrueScale(400)
+	pos TrueScale(280),TrueScale(360):objsize TrueScale( 40),TrueScale(40)
+	button gosub "変更",*Setting_BackColor
+
+	pos TrueScale(  0),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h1 ｻｲｽﾞ":input dummy,,,0:objenable 16,0
+	pos TrueScale(  0),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h1SizeSTR=str(Var_h1Size):input Var_h1SizeSTR,,,0
+	pos TrueScale( 64),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h2 ｻｲｽﾞ":input dummy,,,0:objenable 18,0
+	pos TrueScale( 64),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h2SizeSTR=str(Var_h2Size):input Var_h2SizeSTR,,,0
+	pos TrueScale(128),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h3 ｻｲｽﾞ":input dummy,,,0:objenable 20,0
+	pos TrueScale(128),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h3SizeSTR=str(Var_h3Size):input Var_h3SizeSTR,,,0
+	pos TrueScale(192),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h4 ｻｲｽﾞ":input dummy,,,0:objenable 22,0
+	pos TrueScale(192),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h4SizeSTR=str(Var_h4Size):input Var_h4SizeSTR,,,0
+	pos TrueScale(256),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="普通":input dummy,,,0:objenable 24,0
+	pos TrueScale(256),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_NormalSTR=str(Var_Normal):input Var_NormalSTR,,,0
+
+	pos TrueScale(320),TrueScale(120):objsize TrueScale(270),TrueScale(40)
+	dummy="サンプリング時間(ms)\nAIから応答を取得する頻度です。":mesbox dummy,,,0,0:objenable 26,0
+	pos TrueScale(590),TrueScale(120):objsize TrueScale(50),TrueScale(40)
+	input Var_SamplingAwait,,,4
+
+	pos TrueScale(320),TrueScale(160):objsize TrueScale(270),TrueScale(40)
+	dummy="temperature(0以上の小数)\n生成される文章のランダム性です。":mesbox dummy,,,0,0:objenable 28,0
+	pos TrueScale(590),TrueScale(160):objsize TrueScale(50),TrueScale(40)
+	input Var_LLMTemperature,,,4
+
+	pos TrueScale(320),TrueScale(200):objsize TrueScale(270),TrueScale(40)
+	dummy="最大ﾄｰｸﾝ数(自然数)\n生成していい最大のﾄｰｸﾝ量です。":mesbox dummy,,,0,0:objenable 30,0
+	pos TrueScale(590),TrueScale(200):objsize TrueScale(50),TrueScale(40)
+	input Var_LLMMaxTokens,,,6
+
+	pos TrueScale(320),TrueScale(240):objsize TrueScale(270),TrueScale(40)
+	dummy="ｺﾝﾃｷｽﾄ長(自然数)\n一度に処理するﾄｰｸﾝ量の上限です。":mesbox dummy,,,0,0:objenable 32,0
+	pos TrueScale(590),TrueScale(240):objsize TrueScale(50),TrueScale(40)
+	input Var_LLM_N_ctx,,,4
+
+	pos TrueScale(320),TrueScale(280):objsize TrueScale(270),TrueScale(40)
+	dummy="Nucleus Sampling(0～1の小数)\n選ぶ単語の候補を選ぶ強さです。":mesbox dummy,,,0,0:objenable 34,0
+	pos TrueScale(590),TrueScale(280):objsize TrueScale(50),TrueScale(40)
+	input Var_LLMNucleusSampling,,,4
+
+	pos TrueScale(320),TrueScale(320):objsize TrueScale(270),TrueScale(40)
+	dummy="堂々巡り抑制(0～1の小数)\n堂々巡りを抑制する強さです。":mesbox dummy,,,0,0:objenable 36,0
+	pos TrueScale(590),TrueScale(320):objsize TrueScale(50),TrueScale(40)
+	input Var_LLMRepeatPenalty,,,4
+
+	pos TrueScale(320),TrueScale(360):objsize TrueScale(270),TrueScale(40)
+	dummy="堂々巡り抑制 対象ﾄｰｸﾝ数(自然数)\n堂々巡りを抑制する範囲です。":mesbox dummy,,,0,0:objenable 38,0
+	pos TrueScale(590),TrueScale(360):objsize TrueScale(50),TrueScale(40)
+	input Var_LLMRepeatPenaltyTokens,,,4
+
+	pos TrueScale(320),TrueScale(400):objsize TrueScale(160),TrueScale(40):button "思考を非表示にする..."	,*Setting_GUI_Close:objenable 40,0
+	pos TrueScale(480),TrueScale(400):objsize TrueScale(160),TrueScale(40):button "正規表現置換..."			,*Setting_GUI_Close:objenable 41,0
+	pos TrueScale(320),TrueScale(440):objsize TrueScale(160),TrueScale(40):button "保存せず閉じる"			,*Setting_GUI_Close
+	pos TrueScale(480),TrueScale(440):objsize TrueScale(160),TrueScale(40):button "保存して閉じる"			,*Setting_GUI_Close:objenable 43,0
+return
+
+*Setting_TextColor
+	dialog "",33
+	if stat=0 : return
+	TCol_R=ginfo_r : TCol_G=ginfo_g : TCol_B=ginfo_b : color TCol_R,TCol_G,TCol_B : boxf TrueScale(240),TrueScale(320),TrueScale(280),TrueScale(360)
+return
+
+*Setting_BackColor
+	dialog "",33
+	if stat=0 : return
+	BGCol_R=ginfo_r : BGCol_G=ginfo_g : BGCol_B=ginfo_b : color BGCol_R,BGCol_G,BGCol_B : boxf TrueScale(240),TrueScale(360),TrueScale(280),TrueScale(400)
+return
+
+*Setting_DPIModeChange
+	switch Var_DPIMode
+		case 0
+			dummy="DPIモードは「WindowsXP互換」\nSetProcessDPIAwareを強制します。"
+			Var_DPIMode=1
+			objprm 4,dummy
+			swbreak
+		case 1
+			dummy="DPIモードは「通常(推奨)」\nたいていの環境向けです。"
+			Var_DPIMode=2
+			objprm 4,dummy
+			swbreak
+		default
+			dummy="DPIモードは「無効」\nDPI対応をしません。"
+			Var_DPIMode=0
+			objprm 4,dummy
+			swbreak
+	swend
 return
 
 *Setting_GUI_Close

@@ -1,5 +1,5 @@
 /*
- BeMemoria v0.4 [Alpha]
+ BeMemoria v0.5 [Alpha]
  Made by ABATBeliever
 
  https://abatbeliever.net
@@ -23,8 +23,10 @@
 
 //定数
 AppName          = "BeMemoria"
-AppVer           = "0.4"
-AppVerInt        = "0.4"
+AppVer           = "0.5 Alpha"
+AppVerInt        = "0.5"
+
+UseLLMTextCoreAPILevel = "1.0"
 
 //エラーハンドリング
 onerror *onerror_handle
@@ -71,7 +73,7 @@ oncmd gosub *OnSize, $0005
 
 #module
 	#defcfunc TrueScale int p1
-	return 1.0*Var_ViewScale@*p1
+	return 1.0*double(Var_ViewScale@)*p1
 	#deffunc SetTitle str p1
 		if p1=""{
 			title AppName@+" v"+AppVer@
@@ -105,27 +107,28 @@ screen 3,100,100,screen_hide
 if Var_isForceTop {gsel 0,2}else{gsel 0,1}
 
 gsel 0
-pos   0,TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "ようこそ",	*DisplayMode0
-pos 160,TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "使い方",		*DisplayMode1
-pos 320,TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "各種情報",	*DisplayMode2
-pos 480,TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "更新確認",	*DisplayMode3
+pos TrueScale(  0),TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "ようこそ",	*DisplayMode0
+pos TrueScale(160),TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "使い方",		*DisplayMode1
+pos TrueScale(320),TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "各種情報",	*DisplayMode2
+pos TrueScale(480),TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "更新確認",	*DisplayMode3
 gosub *DisplayMode0
-pos   0,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "新しい付箋を書く",		*NewMemo
-pos 160,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "付箋を編集/削除",		*SelectMemo
-pos 320,TrueScale(430):objsize TrueScale(160),TrueScale(50):button "ﾛｰｶﾙAIに尋ねる",		*AIManager_SelGUI
-pos 480,TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "設定",			*Setting_GUI
+pos TrueScale(  0),TrueScale(430):objsize TrueScale(160),TrueScale(50):button "新しい付箋を書く",		*NewMemo
+pos TrueScale(160),TrueScale(430):objsize TrueScale(160),TrueScale(50):button "付箋を編集/削除",		*SelectMemo
+pos TrueScale(320),TrueScale(430):objsize TrueScale(160),TrueScale(50):button "ﾛｰｶﾙAIに尋ねる",		*AIManager_SelGUI
+pos TrueScale(480),TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "設定",			*Setting_GUI
 
 /*
 0     : ようこそ画面
 1     : 設定画面
 2     : AIウィンドウ
-3     : 新しいメモ / メモを編集 / AI付箋管理
+3     : 新しいメモ / メモを編集 / AI付箋管理 / 詳細設定
 4以上 : memo
 */
 
 hWndList(0)=hwnd
 gosub *SaveMemoMetaData
-*main
+
+if Var_HideWhenBoot{gsel 0:sendmsg hwnd, $112, $F020}
 stop
 
 /////////////////////////////////////////////////////
@@ -137,6 +140,7 @@ stop
 #include "SettingsGUISystem.hsp"
 #include "LocalLLMManager.hsp"
 stop
+
 *onerror_handle
 	tmp ="重大な問題が発生しました。\n"+AppName+"を終了します。\n\n"
 	tmp+="ﾊﾞｰｼﾞｮﾝ:"+AppVer+"\n"
@@ -157,19 +161,7 @@ if (wparam == 1) {
 return
 
 *OnSize
-    if wparam=1 { gsel 0,-1 }// : return}
-/*    width_dat  = lparam & $FFFF
-    height_dat = (lparam >> 16) & $FFFF
-dialog ""
-    //IDが4以上だった場合新しいサイズにURLを合わせる
-    sdim activeWnd
-	activeWnd = GetForegroundWindow()
-	repeat length(hWndList)
-		if cnt<4:continue
-		if activeWnd=hWndList(cnt) {
-			gsel cnt
-			MoveWindow input_hWndList(cnt),0,0,width_dat,40,0}
-	loop*/
+    if wparam=1 { gsel 0,-1 }
 return 
 
 *onjump
