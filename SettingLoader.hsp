@@ -1,3 +1,4 @@
+#deffunc SettingLoad
 Setini_File dir_cur+"\\Config.ini"
 if AppName!=Getini_str("main","target","invalid"){dialog "設定ファイルが無効です。",1 : end}
 
@@ -28,4 +29,10 @@ Var_LLMRepeatPenalty       = Getini_str("LocalAI","LLMRepeatPenalty","1.0")
 Var_LLMRepeatPenaltyTokens = Getini_str("LocalAI","LLMRepeatPenaltyTokens","64")
 Var_LLMThinkTagStart       = Getini_str("LocalAI","LLMThinkTagStart","<think>")
 Var_LLMThinkTagEnd         = Getini_str("LocalAI","LLMThinkTagEnd","</think>")
+Var_ReplaceFeed            = Getini_str("LocalAI","ReplaceFeed","")
 
+LIST_LLMThinkTagSTART = Var_LLMThinkTagStart : strrep LIST_LLMThinkTagSTART,"@","\n"
+LIST_LLMThinkTagEND   = Var_LLMThinkTagEND   : strrep LIST_LLMThinkTagEND  ,"@","\n"
+gosub *Estimate_ReplaceRule
+
+return

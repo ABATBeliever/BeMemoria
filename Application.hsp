@@ -1,5 +1,5 @@
 /*
- BeMemoria v0.5 [Alpha]
+ BeMemoria v0.6 [Beta]
  Made by ABATBeliever
 
  https://abatbeliever.net
@@ -23,18 +23,20 @@
 
 //定数
 AppName          = "BeMemoria"
-AppVer           = "0.5 Alpha"
-AppVerInt        = "0.5"
+AppVer           = "0.6 Alpha"
+AppVerInt        = "0.6"
 
 UseLLMTextCoreAPILevel = "1.0"
 
+#define ctype HIWORD(%1) (%1 >> 16 & $FFFF)
+
 //エラーハンドリング
-onerror *onerror_handle
+//onerror *onerror_handle
 //終了時の処理の予約
 onexit *exit
 
 //システム設定のロード
-#include "SettingLoader.hsp"
+SettingLoad
 
 //DPIモード
 #include "DPImodule.hsp"
@@ -70,6 +72,7 @@ poke IconData, 4 * 6, WindowTitle
 Shell_NotifyIcon 0x00000000, varptr(IconData) // NIM_ADD
 oncmd gosub *OnTrayIcon, 0x0401
 oncmd gosub *OnSize, $0005
+oncmd gosub *OnClickBox, $111
 
 #module
 	#defcfunc TrueScale int p1
@@ -115,13 +118,13 @@ gosub *DisplayMode0
 pos TrueScale(  0),TrueScale(430):objsize TrueScale(160),TrueScale(50):button "新しい付箋を書く",		*NewMemo
 pos TrueScale(160),TrueScale(430):objsize TrueScale(160),TrueScale(50):button "付箋を編集/削除",		*SelectMemo
 pos TrueScale(320),TrueScale(430):objsize TrueScale(160),TrueScale(50):button "ﾛｰｶﾙAIに尋ねる",		*AIManager_SelGUI
-pos TrueScale(480),TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "設定",			*Setting_GUI
+pos TrueScale(480),TrueScale(430):objsize TrueScale(160),TrueScale(50):button gosub "設定",			*Setting_GUI_System
 
 /*
 0     : ようこそ画面
 1     : 設定画面
 2     : AIウィンドウ
-3     : 新しいメモ / メモを編集 / AI付箋管理 / 詳細設定
+3     : 新しいメモ / メモを編集 / AI付箋管理
 4以上 : memo
 */
 
@@ -139,6 +142,7 @@ stop
 #include "NewMemo.hsp"
 #include "SettingsGUISystem.hsp"
 #include "LocalLLMManager.hsp"
+#include "SettingLoader.hsp"
 stop
 
 *onerror_handle
@@ -163,6 +167,22 @@ return
 *OnSize
     if wparam=1 { gsel 0,-1 }
 return 
+
+*OnClickBox
+	if lparam=hReplaceFeedListBox{
+		if HIWORD(wparam) = 1 {
+			sendmsg hReplaceFeedListBox, $188
+			tmp=stat
+			if tmp=-1{return}
+			objenable 10,1:objenable 12,1:objenable 13,1:objenable 14,1
+			INPUT_P2=ReplaceFeedP2(tmp):objprm 10,INPUT_P2
+			INPUT_P3=ReplaceFeedP3(tmp):objprm 12,INPUT_P3
+			INPUT_P4=ReplaceFeedP4(tmp):objprm 13,INPUT_P4
+			INPUT_P6=ReplaceFeedP6(tmp):objprm 14,INPUT_P6
+			objenable 10,0:objenable 12,0:objenable 13,0:objenable 14,0
+		}
+	}
+return
 
 *onjump
 	if wparam = 1 {
