@@ -1,0 +1,155 @@
+#include "Setting_GUI_Commons.hsp"
+#include "Setting_GUI_SystemManager.hsp"
+#include "Setting_GUI_AI.hsp"
+#include "Setting_GUI_REGEXP.hsp"
+
+*Setting_ReloadSettings_ASK
+	dialog "全ての設定キーは、設定画面を開く前に戻ります。\nよろしいですか?",2
+	if stat=7{return}
+	gosub *Setting_ReloadSettings
+return
+
+*Setting_ReloadSettings
+	SettingLoad
+	gosub *Setting_GUI_System
+return
+
+*Setting_RegeneSettings_ASK
+	dialog "全ての設定キーは、既定値に戻ります。\nよろしいですか?",2
+	if stat=7{stop}
+	exist dir_cur+"\\Config.ini" : if strsize!=-1{delete dir_cur+"\\Config.ini"}
+	SettingLoad
+	goto *Setting_GUI_SAVE_DO
+stop
+
+*Estimate_ReplaceRule
+sdim TmpReplaceFeedBlock
+sdim ReplaceFeedP2//置換する構文
+sdim ReplaceFeedP3//置換後の構文
+ dim ReplaceFeedP4//大文字小文字を区別するか
+ dim ReplaceFeedP6//全体を1行とみなすか
+split Var_ReplaceFeed,";",TmpReplaceFeedBlock //@区切りの構造体
+
+dim valid
+repeat length(TmpReplaceFeedBlock)
+	sdim tmp
+	split TmpReplaceFeedBlock(cnt),"@",tmp
+	if length(tmp)!=4{//破損している場合
+		continue
+	}else{
+		ReplaceFeedP2(valid)=str(tmp(0))
+		ReplaceFeedP3(valid)=str(tmp(1))
+		ReplaceFeedP4(valid)=int(tmp(2))
+		ReplaceFeedP6(valid)=int(tmp(3))
+		valid++
+	}
+loop
+
+sdim LIST_ReplaceFeedP2
+repeat length(ReplaceFeedP2)
+	if cnt=0{
+		LIST_ReplaceFeedP2=ReplaceFeedP2(cnt)
+	}else{
+		LIST_ReplaceFeedP2+="\n"+ReplaceFeedP2(cnt)
+	}
+loop
+SEL_ReplaceFeed=0
+return
+
+*Reconstruct_ReplaceRule
+sdim Var_ReplaceFeed
+repeat length(ReplaceFeedP2)
+	if ReplaceFeedP2(cnt)=""{continue}
+	Var_ReplaceFeed+=ReplaceFeedP2(cnt)+"@"+ReplaceFeedP3(cnt)+"@"+ReplaceFeedP4(cnt)+"@"+ReplaceFeedP6(cnt)+";"
+loop
+gosub *Estimate_ReplaceRule
+return
+
+*Setting_GUI_SAVE
+	dialog "設定を上書き保存しますか?",2
+	if stat=7{stop}
+	goto *Setting_GUI_SAVE_DO
+
+//                              対象   /  最小   / 最大 / 既定値
+#deffunc ValidationSTR2DoubleSTR var p1, str p2, str p3, str p4
+	p1=double(p1)
+	if p1<double(p2){p1=double(p4)}
+	if p1>double(p3){p1=double(p4)}
+	p1=str(p1)
+return 0
+
+//                             対象   /  最小   / 最大 / 既定値
+#deffunc ValidationSTR2IntSTR var p1, str p2, str p3, str p4
+	p1=int(p1)
+	if p1<int(p2){p1=int(p4)}
+	if p1>int(p3){p1=int(p4)}
+	p1=str(p1)
+return 0
+
+*Setting_GUI_SAVE_DO
+	ValidationSTR2DoubleSTR NEW_ViewScale,"0.75","3.0","1.0"
+	
+	Var_Opacity=int(Var_OpacitySTR) : ValidationSTR2IntSTR Var_Opacity,"0","90","10"
+
+	Var_TextColor=""+TCol_R+","+TCol_G+","+TCol_B : Var_BackGroundColor=""+BGCol_R+","+BGCol_G+","+BGCol_B
+
+	ValidationSTR2IntSTR Var_h1Size,"1","50","36"
+	ValidationSTR2IntSTR Var_h2Size,"1","50","33"
+	ValidationSTR2IntSTR Var_h3Size,"1","50","30"
+	ValidationSTR2IntSTR Var_h4Size,"1","50","27"
+	ValidationSTR2IntSTR Var_Normal,"1","50","24"
+
+	ValidationSTR2IntSTR    Var_SamplingAwait          ,"  1"," 2000","   300"
+	ValidationSTR2DoubleSTR Var_LLMTemperature         ,"  0"," 2048","   0.7"
+	ValidationSTR2IntSTR    Var_LLMMaxTokens           ," 32","65535"," 65535"
+	ValidationSTR2INTSTR    Var_LLM_N_ctx              ," 64"," 8192","  4096"
+	ValidationSTR2DoubleSTR Var_LLMNucleusSampling     ,"  0","  1.0","  0.95"
+	ValidationSTR2DoubleSTR Var_LLMRepeatPenalty       ,"  0","  1.0","   1.0"
+	ValidationSTR2INTSTR    Var_LLMRepeatPenaltyTokens ,"  0"," 2048","    64"
+	
+	strrep LIST_LLMThinkTagSTART,"\n","@" : Var_LLMThinkTagStart = LIST_LLMThinkTagSTART
+	strrep LIST_LLMThinkTagEND  ,"\n","@" : Var_LLMThinkTagEND   = LIST_LLMThinkTagEND
+	
+	Setini_File dir_cur+"\\Config.ini"
+
+	Setini_str "main","target","BeMemoria"
+	
+	Setini_int "graphic","DPIMode",Var_DPIMode
+ 	Setini_int "graphic","IsForceTop",Var_isForceTop
+	Setini_int "graphic","HideWhenBoot",Var_HideWhenBoot
+	
+	Setini_str "graphic","ViewScale",NEW_ViewScale
+	Setini_str "graphic","Opacity",Var_Opacity
+
+	Setini_str "graphic","TextColor",Var_TextColor
+	Setini_str "graphic","BackGroundColor",Var_BackGroundColor
+
+	Setini_str "TextSize","h1Size",Var_h1Size
+	Setini_str "TextSize","h2Size",Var_h2Size
+	Setini_str "TextSize","h3Size",Var_h3Size
+	Setini_str "TextSize","h4Size",Var_h4Size
+	Setini_str "TextSize","Normal",Var_Normal
+
+	Setini_str "LocalAI","SamplingAwait",Var_SamplingAwait
+	Setini_str "LocalAI","LLMTemperature",Var_LLMTemperature
+	Setini_str "LocalAI","LLMMaxTokens",Var_LLMMaxTokens
+	Setini_str "LocalAI","LLM_N_ctx",Var_LLM_N_ctx
+	Setini_str "LocalAI","LLMNucleusSampling",Var_LLMNucleusSampling
+	Setini_str "LocalAI","LLMRepeatPenalty",Var_LLMRepeatPenalty
+	Setini_str "LocalAI","LLMRepeatPenaltyTokens",Var_LLMRepeatPenaltyTokens
+
+	Setini_str "LocalAI","LLMThinkTagStart",Var_LLMThinkTagStart
+	Setini_str "LocalAI","LLMThinkTagEnd",Var_LLMThinkTagEnd
+	
+	Setini_str "LocalAI","ReplaceFeed",Var_ReplaceFeed
+
+	SettingLoad
+	gosub *MemoListLoad	: gosub *SetMemo
+	dialog "保存しました。\nアプリを終了します。手動で起動しなおしてください。"
+end
+
+*Setting_GUI_Close
+	gosub *Setting_ReloadSettings
+	gsel 1,-1
+	if Var_isForceTop {gsel 0,2}else{gsel 0,1}
+stop

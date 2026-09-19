@@ -1,0 +1,93 @@
+*Setting_GUI_System
+	gosub *Setting_GUI_Commons
+	objprm 0,":設定 - システム設定"
+	objenable 2,0
+	//DPI
+	font "",TrueScale(16)
+	pos              0,TrueScale(120):objsize TrueScale(600),TrueScale(40)
+	dummy="-":mesbox dummy,,,0,0:objenable 4,0
+	pos TrueScale(600),TrueScale(120):objsize TrueScale( 40),TrueScale(40)
+	button gosub "変更",*Setting_DPIModeChange:gosub *Setting_DPIModeChange:gosub *Setting_DPIModeChange:gosub *Setting_DPIModeChange//現在を表示するために3回変える
+
+	pos 0,TrueScale(160):objsize TrueScale(320),TrueScale(40)
+	dummy="ようこそウィンドウを最前面表示する"	:chkbox dummy,Var_isForceTop
+	
+	pos 0,TrueScale(200):objsize TrueScale(320),TrueScale(40)
+	dummy="ようこそウィンドウを自動で隠す"		:chkbox dummy,Var_HideWhenBoot
+
+	pos              0,TrueScale(240):objsize TrueScale(250),TrueScale(40)
+	dummy="画面と付箋のスケール(実数倍)":input dummy,,,0:objenable 8,0
+	pos TrueScale(250),TrueScale(240):objsize TrueScale(70),TrueScale(40)
+	NEW_ViewScale=Var_ViewScale
+	input NEW_ViewScale,,,4
+
+	pos TrueScale(320),TrueScale(160):objsize TrueScale(280),TrueScale(40)
+	dummy="付箋の透明度(%)":input dummy,,,0:objenable 10,0
+	pos TrueScale(600),TrueScale(160):objsize TrueScale(40),TrueScale(40)
+	sdim Var_OpacitySTR : Var_OpacitySTR=str(100-Var_Opacity):input Var_OpacitySTR,,,4
+
+	pos TrueScale(320),TrueScale(200):objsize TrueScale(240),TrueScale(40)
+	dummy="付箋の文字色":input dummy,,,0:objenable 12,0
+	color TCol_R,TCol_G,TCol_B : boxf TrueScale(560),TrueScale(200),TrueScale(600),TrueScale(240)
+	pos TrueScale(600),TrueScale(200):objsize TrueScale( 40),TrueScale(40)
+	button gosub "変更",*Setting_TextColor
+
+	pos TrueScale(320),TrueScale(240):objsize TrueScale(240),TrueScale(40)
+	dummy="付箋の背景色":input dummy,,,0:objenable 14,0
+	color BGCol_R,BGCol_G,BGCol_B : boxf TrueScale(560),TrueScale(240),TrueScale(600),TrueScale(280)
+	pos TrueScale(600),TrueScale(240):objsize TrueScale( 40),TrueScale(40)
+	button gosub "変更",*Setting_BackColor
+
+	pos TrueScale(  0),TrueScale(280):objsize TrueScale(320),TrueScale(120)
+	dummy="文字サイズ\n\n付箋の文字の大きさを指定します。\n\nこの数字は「画面と付箋のスケール」\nの影響をうけます。"
+	mesbox  dummy,,,0,0
+	pos TrueScale(  0),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h1 ｻｲｽﾞ":input dummy,,,0:objenable 17,0
+	pos TrueScale(  0),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h1SizeSTR=str(Var_h1Size):input Var_h1SizeSTR,,,0
+	pos TrueScale( 64),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h2 ｻｲｽﾞ":input dummy,,,0:objenable 19,0
+	pos TrueScale( 64),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h2SizeSTR=str(Var_h2Size):input Var_h2SizeSTR,,,0
+	pos TrueScale(128),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h3 ｻｲｽﾞ":input dummy,,,0:objenable 21,0
+	pos TrueScale(128),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h3SizeSTR=str(Var_h3Size):input Var_h3SizeSTR,,,0
+	pos TrueScale(192),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h4 ｻｲｽﾞ":input dummy,,,0:objenable 23,0
+	pos TrueScale(192),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h4SizeSTR=str(Var_h4Size):input Var_h4SizeSTR,,,0
+	pos TrueScale(256),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="普通":input dummy,,,0:objenable 25,0
+	pos TrueScale(256),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_NormalSTR=str(Var_Normal):input Var_NormalSTR,,,0
+
+	pos TrueScale(320),TrueScale(400):objsize TrueScale(160),TrueScale(40):button gosub "'設定を開く前'に戻す"	,*Setting_ReloadSettings_ASK
+	pos TrueScale(480),TrueScale(400):objsize TrueScale(160),TrueScale(40):button "'既定値'に戻す"		,*Setting_RegeneSettings_ASK
+	pos TrueScale(320),TrueScale(440):objsize TrueScale(160),TrueScale(40):button "変更を保存せず閉じる"		,*Setting_GUI_Close
+	pos TrueScale(480),TrueScale(440):objsize TrueScale(160),TrueScale(40):button "変更を保存して閉じる"		,*Setting_GUI_SAVE
+return
+
+*Setting_TextColor
+	dialog "",33
+	if stat=0 : return
+	TCol_R=ginfo_r : TCol_G=ginfo_g : TCol_B=ginfo_b : color TCol_R,TCol_G,TCol_B
+	boxf TrueScale(560),TrueScale(200),TrueScale(600),TrueScale(240)
+return
+
+*Setting_BackColor
+	dialog "",33
+	if stat=0 : return
+	BGCol_R=ginfo_r : BGCol_G=ginfo_g : BGCol_B=ginfo_b : color BGCol_R,BGCol_G,BGCol_B
+	boxf TrueScale(560),TrueScale(240),TrueScale(600),TrueScale(280)
+return
+
+*Setting_DPIModeChange
+	switch Var_DPIMode
+		case 0
+			dummy="DPIモードは「WindowsXP互換」\nSetProcessDPIAwareを強制します。「通常」がうまくいかない場合にお試しください。"
+			Var_DPIMode=1
+			objprm 4,dummy
+			swbreak
+		case 1
+			dummy="DPIモードは「通常(推奨)」\n一般的なDPI処理で、たいていの環境に合っています。"
+			Var_DPIMode=2
+			objprm 4,dummy
+			swbreak
+		default
+			dummy="DPIモードは「無効」\nドライバが当たらない環境、または仮想OS環境向け。"
+			Var_DPIMode=0
+			objprm 4,dummy
+			swbreak
+	swend
+return

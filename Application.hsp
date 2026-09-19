@@ -1,5 +1,5 @@
 /*
- BeMemoria v0.6 [Beta]
+ BeMemoria v0.8 [Beta]
  Made by ABATBeliever
 
  https://abatbeliever.net
@@ -23,8 +23,8 @@
 
 //íËêî
 AppName          = "BeMemoria"
-AppVer           = "0.6 Alpha"
-AppVerInt        = "0.6"
+AppVer           = "0.8 Beta"
+AppVerInt        = "0.8"
 
 UseLLMTextCoreAPILevel = "1.0"
 
@@ -140,7 +140,7 @@ stop
 #include "MemoLoader.hsp"
 #include "DisplayModeManager.hsp"
 #include "NewMemo.hsp"
-#include "SettingsGUISystem.hsp"
+#include "SettingMGR.hsp"
 #include "LocalLLMManager.hsp"
 #include "SettingLoader.hsp"
 stop

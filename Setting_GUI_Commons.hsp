@@ -1,0 +1,22 @@
+*Setting_GUI_Commons
+	gsel 0,-1
+	screen 1,TrueScale(640),TrueScale(480),0
+	hWndList(1)=hwnd
+	GetWindowLong hwnd, -16
+	SetWindowLong hwnd, -16, stat - $80000
+	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy="-":font "",TrueScale(32):objmode 2
+	if Var_isForceTop {gsel 1,2}else{gsel 1,1}
+
+	input dummy:objenable 0,0
+	pos 0,TrueScale(40):objsize TrueScale(640),TrueScale(40)
+	dummy="ここで各種設定ができます。全ての設定は次回起動時に反映されます。"
+	font "",TrueScale(20)
+	mesbox dummy,,,0,0
+
+	pos              0,TrueScale(80):objsize TrueScale(320),TrueScale(40)
+	button gosub "システム設定",*Setting_GUI_System
+	pos TrueScale(320),TrueScale(80):objsize TrueScale(320),TrueScale(40)
+	button gosub "AI関連の高度な設定",*Setting_GUI_AI
+	objsize TrueScale(160),TrueScale(40):font "",TrueScale(16)
+return

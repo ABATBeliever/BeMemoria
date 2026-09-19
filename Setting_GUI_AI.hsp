@@ -1,0 +1,150 @@
+*Setting_GUI_AI
+	gosub *Setting_GUI_Commons
+	objprm 0,":設定 - AI関連の高度な設定"
+	objenable 3,0
+	//AI
+	font "",TrueScale(16)
+	pos TrueScale(320),TrueScale(120):objsize TrueScale(270),TrueScale(40)
+	dummy="サンプリング時間(ms)\nAIから応答を取得する頻度。":mesbox dummy,,,0,0:objenable 4,0
+	pos TrueScale(590),TrueScale(120):objsize TrueScale(50),TrueScale(40)
+	input Var_SamplingAwait,,,4
+
+	pos TrueScale(320),TrueScale(160):objsize TrueScale(270),TrueScale(40)
+	dummy="temperature(0以上の小数)\n生成される文章のランダム性。":mesbox dummy,,,0,0:objenable 6,0
+	pos TrueScale(590),TrueScale(160):objsize TrueScale(50),TrueScale(40)
+	input Var_LLMTemperature,,,4
+
+	pos TrueScale(320),TrueScale(200):objsize TrueScale(270),TrueScale(40)
+	dummy="最大ﾄｰｸﾝ数(自然数)\n生成していい最大のﾄｰｸﾝ量。":mesbox dummy,,,0,0:objenable 8,0
+	pos TrueScale(590),TrueScale(200):objsize TrueScale(50),TrueScale(40)
+	input Var_LLMMaxTokens,,,6
+
+	pos TrueScale(320),TrueScale(240):objsize TrueScale(270),TrueScale(40)
+	dummy="ｺﾝﾃｷｽﾄ長(自然数)\n一度に処理するﾄｰｸﾝ量の上限。":mesbox dummy,,,0,0:objenable 10,0
+	pos TrueScale(590),TrueScale(240):objsize TrueScale(50),TrueScale(40)
+	input Var_LLM_N_ctx,,,4
+
+	pos TrueScale(320),TrueScale(280):objsize TrueScale(270),TrueScale(40)
+	dummy="Nucleus Sampling(0～1の小数)\n選ぶ単語の多様性。":mesbox dummy,,,0,0:objenable 12,0
+	pos TrueScale(590),TrueScale(280):objsize TrueScale(50),TrueScale(40)
+	input Var_LLMNucleusSampling,,,4
+
+	pos TrueScale(320),TrueScale(320):objsize TrueScale(270),TrueScale(40)
+	dummy="堂々巡り抑制(0～1の小数)\n堂々巡りを抑制する強さ。":mesbox dummy,,,0,0:objenable 14,0
+	pos TrueScale(590),TrueScale(320):objsize TrueScale(50),TrueScale(40)
+	input Var_LLMRepeatPenalty,,,4
+
+	pos TrueScale(320),TrueScale(360):objsize TrueScale(270),TrueScale(40)
+	dummy="堂々巡り抑制 対象ﾄｰｸﾝ数(自然数)\n堂々巡りを抑制するﾄｰｸﾝ範囲。":mesbox dummy,,,0,0:objenable 16,0
+	pos TrueScale(590),TrueScale(360):objsize TrueScale(50),TrueScale(40)
+	input Var_LLMRepeatPenaltyTokens,,,4
+
+	pos TrueScale(320),TrueScale(400):objsize TrueScale(160),TrueScale(40):button gosub "'設定を開く前'に戻す"	,*Setting_ReloadSettings_ASK
+	pos TrueScale(480),TrueScale(400):objsize TrueScale(160),TrueScale(40):button "'既定値'に戻す"		,*Setting_RegeneSettings_ASK
+	pos TrueScale(320),TrueScale(440):objsize TrueScale(160),TrueScale(40):button "変更を保存せず閉じる"		,*Setting_GUI_Close
+	pos TrueScale(480),TrueScale(440):objsize TrueScale(160),TrueScale(40):button "変更を保存して閉じる"		,*Setting_GUI_SAVE
+
+	pos TrueScale(  0),TrueScale(120):objsize TrueScale(160),TrueScale(120)
+	dummy="think開始タグ\n\nAIの「思考の開始」\nのタグを指定。":mesbox dummy,,,0,0:objenable 22,0
+	pos TrueScale(  0),TrueScale(240):objsize TrueScale(120),TrueScale(40)
+	Input_AI_Think_Start_Tag="":input Input_AI_Think_Start_Tag,,,12
+	pos TrueScale(120),TrueScale(240):objsize TrueScale( 40),TrueScale(40)
+	button gosub "追加",*Setting_ThinkStartTagAdd
+	pos TrueScale(160),TrueScale(120):objsize TrueScale(160),TrueScale(10)
+	SEL_LLMThinkTagStart=0:listbox SEL_LLMThinkTagStart,TrueScale(120),LIST_LLMThinkTagStart
+	pos TrueScale(160),TrueScale(240):objsize TrueScale(160),TrueScale(40)
+	button gosub "タグをリストから消す",*Setting_ThinkStartTagDel
+//+160
+	pos TrueScale(  0),TrueScale(280):objsize TrueScale(160),TrueScale(120)
+	dummy="think終了タグ\n\nAIの「思考の終了」\nのタグを指定。":mesbox dummy,,,0,0:objenable 27,0
+	pos TrueScale(  0),TrueScale(400):objsize TrueScale(120),TrueScale(40)
+	Input_AI_Think_END_Tag="":input Input_AI_Think_END_Tag,,,12
+	pos TrueScale(120),TrueScale(400):objsize TrueScale( 40),TrueScale(40)
+	button gosub "追加",*Setting_ThinkENDTagAdd
+	pos TrueScale(160),TrueScale(280):objsize TrueScale(160),TrueScale(10)
+	SEL_LLMThinkTagEND=0:listbox SEL_LLMThinkTagEND,TrueScale(120),LIST_LLMThinkTagEND
+	pos TrueScale(160),TrueScale(400):objsize TrueScale(160),TrueScale(40)
+	button gosub "タグをリストから消す",*Setting_ThinkENDTagDel
+
+	pos TrueScale(0),TrueScale(440):objsize TrueScale(320),TrueScale(40):button gosub "AI出力を正規表現で置換する..."	,*Setting_GUI_AI_REGEXP
+return
+
+*Setting_ThinkStartTagAdd
+	strrep Input_AI_Think_Start_Tag,"@",""
+	if Input_AI_Think_Start_Tag="" {dialog "入力してください。" : return}
+	sdim tmp : flag=0
+	split Var_LLMThinkTagStart,"@",tmp
+	repeat length(tmp)
+		if tmp(cnt)=Input_AI_Think_Start_Tag{flag=1}
+	loop
+	if flag=1 {dialog "同じ内容がすでに登録されているようです。\n追加は行われません。":return}
+	if Var_LLMThinkTagStart!=""{
+		Var_LLMThinkTagStart+="@"+Input_AI_Think_Start_Tag
+	}else{
+		Var_LLMThinkTagStart=Input_AI_Think_Start_Tag
+	}
+	LIST_LLMThinkTagSTART = Var_LLMThinkTagStart : strrep LIST_LLMThinkTagSTART,"@","\n"
+	objprm 25,LIST_LLMThinkTagSTART
+return
+
+*Setting_ThinkStartTagDel
+	sdim tmp
+	split Var_LLMThinkTagStart,"@",tmp
+	if length(tmp)=1 and tmp(0)="" {return}
+	dialog "タグ「"+tmp(SEL_LLMThinkTagStart)+"」を削除しますか?",2
+	if stat=7{return}
+	sdim Var_LLMThinkTagStart
+	flag=0//初回ではないことを示す
+	repeat length(tmp)
+		if cnt=SEL_LLMThinkTagStart{continue}
+		if flag{
+			Var_LLMThinkTagStart+="@"+tmp(cnt)
+		}else{
+			Var_LLMThinkTagStart=tmp(cnt)
+			flag=1
+		}
+	loop
+	LIST_LLMThinkTagSTART = Var_LLMThinkTagStart : strrep LIST_LLMThinkTagSTART,"@","\n"
+	objprm 25,LIST_LLMThinkTagSTART
+	SEL_LLMThinkTagStart=0
+return
+
+*Setting_ThinkENDTagAdd
+	strrep Input_AI_Think_END_Tag,"@",""
+	if Input_AI_Think_END_Tag="" {dialog "入力してください。" : return}
+	sdim tmp : flag=0
+	split Var_LLMThinkTagEND,"@",tmp
+	repeat length(tmp)
+		if tmp(cnt)=Input_AI_Think_END_Tag{flag=1}
+	loop
+	if flag=1 {dialog "同じ内容がすでに登録されているようです。\n追加は行われません。":return}
+	if Var_LLMThinkTagEND!=""{
+		Var_LLMThinkTagEND+="@"+Input_AI_Think_END_Tag
+	}else{
+		Var_LLMThinkTagEND=Input_AI_Think_END_Tag
+	}
+	LIST_LLMThinkTagEND = Var_LLMThinkTagEND : strrep LIST_LLMThinkTagEND,"@","\n"
+	objprm 30,LIST_LLMThinkTagEND
+return
+
+*Setting_ThinkENDTagDel
+	sdim tmp
+	split Var_LLMThinkTagEND,"@",tmp
+	if length(tmp)=1 and tmp(0)="" {return}
+	dialog "タグ「"+tmp(SEL_LLMThinkTagEND)+"」を削除しますか?",2
+	if stat=7{return}
+	sdim Var_LLMThinkTagEND
+	flag=0//初回ではないことを示す
+	repeat length(tmp)
+		if cnt=SEL_LLMThinkTagEND{continue}
+		if flag{
+			Var_LLMThinkTagEND+="@"+tmp(cnt)
+		}else{
+			Var_LLMThinkTagEND=tmp(cnt)
+			flag=1
+		}
+	loop
+	LIST_LLMThinkTagEND = Var_LLMThinkTagEND : strrep LIST_LLMThinkTagEND,"@","\n"
+	objprm 30,LIST_LLMThinkTagEND
+	SEL_LLMThinkTagEND=0
+return

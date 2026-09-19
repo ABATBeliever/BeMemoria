@@ -1,6 +1,6 @@
 【ソフト名称】BeMemoria
-【バージョン】0.6 Alpha
-【最終更新日】2026/09/16
+【バージョン】0.8 Beta
+【最終更新日】2026/09/19
 【 著 作 者 】ABATBeliever
 【 動作環境 】Windows10+
 【 推奨環境 】Windows11+

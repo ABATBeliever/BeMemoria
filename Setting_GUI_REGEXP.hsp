@@ -1,0 +1,119 @@
+*Setting_GUI_AI_REGEXP
+	oncmd gosub *OnClickBox, $111
+	gosub *Setting_GUI_Commons
+	objprm 0,":設定 - AI関連の高度な設定 / 正規表現..."
+	objenable 2,0
+	//AI
+	font "",TrueScale(16)
+
+	pos TrueScale(  0),TrueScale(120):objsize TrueScale(320),TrueScale(120)
+	dummy={"AI出力を正規表現で置換できます。
+・ルールを追加するには、「ルールを追加」\n　をクリック。
+・ルールを編集するには、リストで選んで\n　から「ルールの編集を開始」をクリック。
+・ルールを削除するには、編集中に\n　「置換する構文」を空にして保存。"}
+	mesbox dummy,,,0,0:objenable 4,0
+	
+	
+	pos TrueScale(320),TrueScale(120):objsize TrueScale(320),TrueScale(120)
+	dummy={"正規表現の記法はmod_regexp.asに依存します。\n・英語と記号以外を記入しないでください。"}
+	mesbox dummy,,,0,0:objenable 5,0
+
+	pos TrueScale(  0),TrueScale(240):objsize TrueScale(320),
+	SEL_ReplaceFeed=0:listbox SEL_ReplaceFeed,TrueScale(180),LIST_ReplaceFeedP2
+	hReplaceFeedListBox = objinfo(stat, 2)
+
+	pos TrueScale(  0),TrueScale(440):objsize TrueScale(160),TrueScale(40)
+	button gosub "ルールを追加",*Setting_AddReplaceRule
+	pos TrueScale(160),TrueScale(440):objsize TrueScale(160),TrueScale(40)
+	button gosub "ルールの編集を開始",*Setting_EditReplaceRule
+
+	pos TrueScale(320),TrueScale(240):objsize TrueScale(180),TrueScale(40)
+	dummy="置換する構文\n置換範囲ときっかけ。":mesbox dummy,,,0,0:objenable 9,0
+	pos TrueScale(500),TrueScale(240):objsize TrueScale(140),TrueScale(40)
+	INPUT_P2="":input INPUT_P2,,,128:objenable 10,0
+
+	pos TrueScale(320),TrueScale(280):objsize TrueScale(180),TrueScale(40)
+	dummy="置換後の構文\n置換をした後の構文。":mesbox dummy,,,0,0:objenable 11,0
+	pos TrueScale(500),TrueScale(280):objsize TrueScale(140),TrueScale(40)
+	INPUT_P3="":input INPUT_P3,,,128:objenable 12,0
+
+	pos TrueScale(320),TrueScale(320):objsize TrueScale(320),TrueScale(40)
+	INPUT_P4=0 :dummy="アルファベットの大文字小文字を区別します":chkbox dummy,INPUT_P4:objenable 13,0
+
+	pos TrueScale(320),TrueScale(360):objsize TrueScale(320),TrueScale(40)
+	INPUT_P6=0 :dummy="複数行にまたがっていても処理します"		:chkbox dummy,INPUT_P6:objenable 14,0
+
+	pos TrueScale(320),TrueScale(400):objsize TrueScale(160),TrueScale(40):button gosub "'設定を開く前'に戻す"	,*Setting_ReloadSettings_ASK
+	pos TrueScale(480),TrueScale(400):objsize TrueScale(160),TrueScale(40):button "'既定値'に戻す"		,*Setting_RegeneSettings_ASK
+	pos TrueScale(320),TrueScale(440):objsize TrueScale(160),TrueScale(40):button "変更を保存せず閉じる"		,*Setting_GUI_Close
+	pos TrueScale(480),TrueScale(440):objsize TrueScale(160),TrueScale(40):button "変更を保存して閉じる"		,*Setting_GUI_SAVE
+	
+	IsNowEditReplaceRule=0
+	if length(ReplaceFeedP2)=1 and ReplaceFeedP2=""{objenable 8,0}
+return
+
+*Setting_AddReplaceRule
+	if IsNowEditReplaceRule{
+		dialog "ルールの変更を取りやめますか?",2
+		if stat=7{return}
+		IsNowEditReplaceRule=0
+		objenable 6,1
+		objenable 10,0:objenable 12,0:objenable 13,0:objenable 14,0
+		objenable  3,1:objenable 15,1:objenable 16,1:objenable 17,1:objenable 18,1
+		objprm 7,"ルールを追加" : objprm 8,"ルールの編集を開始"
+		INPUT_P2="":objprm 10,INPUT_P2
+		INPUT_P3="":objprm 12,INPUT_P3
+		INPUT_P4=0 :objprm 13,INPUT_P4
+		INPUT_P6=0 :objprm 14,INPUT_P6
+		if length(ReplaceFeedP2)=1 and ReplaceFeedP2=""{objenable 8,0}
+	}else{
+		Var_ReplaceFeed+=";NewRule@@1@1"
+		gosub *Estimate_ReplaceRule
+		objprm 6,LIST_ReplaceFeedP2
+		SEL_ReplaceFeed=length(ReplaceFeedP2)-1
+
+		gosub *Setting_EditReplaceRule
+	}
+return
+
+*Setting_EditReplaceRule
+	if IsNowEditReplaceRule{
+		strrep INPUT_P2,"@",""
+		strrep INPUT_P2,";",""
+		if INPUT_P2=""{
+			dialog "このルールを削除しますか?",2
+		}else{
+			dialog "ルールを保存しますか?",2
+		}
+		if stat=7{return}
+		
+		strrep INPUT_P3,"@","" : strrep INPUT_P3,";",""
+		ReplaceFeedP2(SEL_ReplaceFeed)=INPUT_P2
+		ReplaceFeedP3(SEL_ReplaceFeed)=INPUT_P3
+		ReplaceFeedP4(SEL_ReplaceFeed)=INPUT_P4
+		ReplaceFeedP6(SEL_ReplaceFeed)=INPUT_P6
+		gosub *Reconstruct_ReplaceRule
+		
+		objprm 6,LIST_ReplaceFeedP2
+		IsNowEditReplaceRule=0
+		objenable 6,1
+		objenable 10,0:objenable 12,0:objenable 13,0:objenable 14,0
+		objenable  3,1:objenable 15,1:objenable 16,1:objenable 17,1:objenable 18,1
+		objprm 7,"ルールを追加" : objprm 8,"ルールの編集を開始"
+		INPUT_P2="":objprm 10,INPUT_P2
+		INPUT_P3="":objprm 12,INPUT_P3
+		INPUT_P4=0 :objprm 13,INPUT_P4
+		INPUT_P6=0 :objprm 14,INPUT_P6
+		if length(ReplaceFeedP2)=1 and ReplaceFeedP2=""{objenable 8,0}
+	}else{
+		objenable 6,0
+		objenable 8,1:objenable 10,1:objenable 12,1:objenable 13,1:objenable 14,1
+		objenable 3,0:objenable 15,0:objenable 16,0:objenable 17,0:objenable 18,0
+		objprm 7,"ルールの変更を破棄" : objprm 8,"ルールを保存"
+		INPUT_P2=ReplaceFeedP2(SEL_ReplaceFeed)	:objprm 10,INPUT_P2
+		INPUT_P3=ReplaceFeedP3(SEL_ReplaceFeed)	:objprm 12,INPUT_P3
+		INPUT_P4=ReplaceFeedP4(SEL_ReplaceFeed) :objprm 13,INPUT_P4
+		INPUT_P6=ReplaceFeedP6(SEL_ReplaceFeed) :objprm 14,INPUT_P6
+		IsNowEditReplaceRule=1
+	}
+return

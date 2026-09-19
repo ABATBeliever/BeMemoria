@@ -84,6 +84,7 @@ return OutPutDatSTR
 		logmes ""+str(cnt+1)+"/"+str(notemax)
 		sdim tmp
 		noteget tmp,cnt
+		SetTitle "モデルを調べています... ("+str(cnt+1)+"/"+str(notemax)+") 「"+tmp+"」"
 		if IsThisModelValid(tmp){
 			if flag{
 				ValidModelList(length(ValidModelList))=tmp
@@ -101,6 +102,7 @@ return OutPutDatSTR
 	repeat length(ValidModelList)-1
 		LLMModelList+="\n"+ValidModelList(cnt+1)
 	loop
+	SetTitle ""+str(length(ValidModelList))+"件のAIが利用可能"
 	dummy =""+str(length(ValidModelList))+"件のAIが有効に読み込めました。\n\n"
 	dummy+="使用したいAIモデルを選択してください。\n\n"
 	dummy+="「キャンセル」を押して戻ります。\n再スキャンするにはこのページを開きなおしてください。\n\n"
@@ -111,6 +113,7 @@ return OutPutDatSTR
 	stop
 
 *AIManager_Scan_NoValids
+	SetTitle "読み込めるAIモデルが1つもありません"
 	objenable 3,1
 	dummy ="現在、読み込めるAIモデルが1つもありません。\n\n"
 	dummy+="好きな(.gguf)形式のAIモデルを./llm/フォルダに配置してください。\n"
@@ -122,8 +125,8 @@ return OutPutDatSTR
 
 *AIManager_LoadModel
 	objenable 2,0:objenable 3,0:objenable 4,0
-	dialog ""+ValidModelList(LLMModelCnt)+" を読み込みます。\nよろしいですか?\n-------------\n"+GetModelInfo(ValidModelList(LLMModelCnt)),2,LLMTextCoreVersion
-	if stat=7{objenable 2,1:objenable 3,1:objenable 4,1:return}
+	dialog ""+ValidModelList(LLMModelListCnt)+" を読み込みます。\nよろしいですか?\n-------------\n"+GetModelInfo(ValidModelList(LLMModelListCnt)),2,LLMTextCoreVersion
+	if stat=7{objenable 2,1:objenable 3,1:objenable 4,1:stop}
 	goto *AIManager_Normal_GUI
 
 *AIManager_Normal_GUI
@@ -170,15 +173,15 @@ stop
 	if UseHusenNum=0{
 		objprm 1,ShowStableData("[あなた]\n"+UserInput)
 		CallExec =""+dir_cur+"/llm/LLMTextCore.exe "									//実行ファイル
-		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" "		//モデル指定
+		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelListCnt)+"\" "		//モデル指定
 		CallExec+="-p \""+PostText+"\" "												//プロンプト
 		CallExec+="-s \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\" "	//システムプロンプト
-		CallExec+="--temp 0.7 "															//temperature
-		CallExec+="--max-tokens 65535 "													//最大トークン
-		CallExec+="--n-ctx 4096 "														//コンテキスト長
-		CallExec+="--top-p 0.95 "														//nucleus sampling
-		CallExec+="--repeat-penalty 1.0 "												//繰り返し抑制
-		CallExec+="--penalty-last-n 64 "												//repeat-penalty対象トークン数
+		CallExec+="--temp "+Var_LLMTemperature+" "										//temperature
+		CallExec+="--max-tokens "+Var_LLMMaxTokens+" "									//最大トークン
+		CallExec+="--n-ctx "+Var_LLM_N_ctx+" "											//コンテキスト長
+		CallExec+="--top-p "+Var_LLMNucleusSampling+" "									//nucleus sampling
+		CallExec+="--repeat-penalty "+Var_LLMRepeatPenalty+" "							//繰り返し抑制
+		CallExec+="--penalty-last-n "+Var_LLMRepeatPenaltyTokens+" "					//repeat-penalty対象トークン数
 		CallExec+="--stream "															//トークンを逐次出力する
 //		CallExec+="--think-cut "														//思考を分離
 //		CallExec+="--think-start hoge --think-end huga "								//thinkタグの指定
@@ -195,15 +198,15 @@ stop
 		loop
 		PostText+=" "+tmp
 		CallExec =""+dir_cur+"/llm/LLMTextCore.exe "									//実行ファイル
-		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" "		//モデル指定
+		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelListCnt)+"\" "		//モデル指定
 		CallExec+="-p \""+PostText+"\" "												//プロンプト
 		CallExec+="-s \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです\" "	//システムプロンプト
-		CallExec+="--temp 0.7 "															//temperature
-		CallExec+="--max-tokens 65535 "													//最大トークン
-		CallExec+="--n-ctx 4096 "														//コンテキスト長
-		CallExec+="--top-p 0.95 "														//nucleus sampling
-		CallExec+="--repeat-penalty 1.0 "												//繰り返し抑制
-		CallExec+="--penalty-last-n 64 "												//repeat-penalty対象トークン数
+		CallExec+="--temp "+Var_LLMTemperature+" "										//temperature
+		CallExec+="--max-tokens "+Var_LLMMaxTokens+" "									//最大トークン
+		CallExec+="--n-ctx "+Var_LLM_N_ctx+" "											//コンテキスト長
+		CallExec+="--top-p "+Var_LLMNucleusSampling+" "									//nucleus sampling
+		CallExec+="--repeat-penalty "+Var_LLMRepeatPenalty+" "							//繰り返し抑制
+		CallExec+="--penalty-last-n "+Var_LLMRepeatPenaltyTokens+" "					//repeat-penalty対象トークン数
 		CallExec+="--stream "															//トークンを逐次出力する
 //		CallExec+="--think-cut "														//思考を分離
 //		CallExec+="--think-start hoge --think-end huga "								//thinkタグの指定
@@ -216,11 +219,13 @@ stop
 		pipeget dummy,0
 		if stat=0:break
 		tmp+=dummy
-		objprm 1,ShowTemporaryData("\n\n["+ValidModelList(LLMModelCnt)+"]\n"+tmp+"\n\n")
+		objprm 1,ShowTemporaryData("\n\n["+ValidModelList(LLMModelListCnt)+"]\n"+tmp+"\n\n")
 		sendmsg DisplayMSGBoxHWND, 0x00B5, 7, 0
-		await 30
+		await int(Var_SamplingAwait)
 	loop
+//	dialog res
 	//<think>があれば除去する
+	/*
 	dim IsNowThinkPart
 	sdim AIResponse,65535
 	notesel res
@@ -234,8 +239,36 @@ stop
 		if IsNowThinkPart{continue}
 		if tmp=""{continue}
 		AIResponse+="\n"+tmp
+	loop*/
+	repeat length(ReplaceFeedP2)
+//		dialog "置換を実施します。\n対象:"+res+"\nP2:"+ReplaceFeedP2(cnt)+"\nP3:"+ReplaceFeedP3(cnt)+"\nP4:"+ReplaceFeedP4(cnt)+"\nP6:"+ReplaceFeedP6(cnt)
+		res = replace(res,ReplaceFeedP2(cnt),ReplaceFeedP3(cnt),ReplaceFeedP4(cnt),0,ReplaceFeedP6(cnt))
 	loop
-	objprm 1,ShowStableData("\n\n["+ValidModelList(LLMModelCnt)+"]"+AIResponse+"\n\n")
+	dim IsNowThinkPart
+	sdim AIResponse,65535
+	notesel res
+	sdim FlagStart : sdim FlagEND
+	split Var_LLMThinkTagStart,"@",FlagStart
+	split Var_LLMThinkTagEND  ,"@",FlagEND
+	repeat notemax
+		sdim tmp
+		noteget tmp,cnt
+		strrep tmp,"*",""
+		strrep tmp,"- ","・"
+		isNeedContinue=0
+		repeat length(FlagStart)
+			if instr(tmp,0,FlagStart(cnt))=0{IsNowThinkPart=1:IsNeedContinue=1:break}
+		loop
+		repeat length(FlagEND)
+			if instr(tmp,0,FlagEND(cnt)  )=0{IsNowThinkPart=0:IsNeedContinue=1:break}
+		loop
+		if IsNeedContinue or IsNowThinkPart{continue}
+		if tmp=""{continue}
+		AIResponse+="\n"+tmp
+	loop
+	noteunsel
+//	dialog AIResponse
+	objprm 1,ShowStableData("\n\n["+ValidModelList(LLMModelListCnt)+"]"+AIResponse+"\n\n")
 	sendmsg DisplayMSGBoxHWND, 0x00B5, 7, 0
 	UserInput="" : objprm 2,"" : objenable 2,1 : objenable 3,1 : objenable 4,1 : objenable 5,1 : objenable 6,1
 stop
@@ -328,30 +361,30 @@ stop
 	strrep tmp,"[EOF]",""
 	if PostText=""{
 		CallExec =""+dir_cur+"/llm/LLMTextCore.exe "									//実行ファイル
-		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" "		//モデル指定
+		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelListCnt)+"\" "		//モデル指定
 		CallExec+="-p \""+tmp+"\" "														//プロンプト
 		CallExec+="-s \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。文章を要約してください。\" "	//システムプロンプト
-		CallExec+="--temp 0.7 "															//temperature
-		CallExec+="--max-tokens 65535 "													//最大トークン
-		CallExec+="--n-ctx 4096 "														//コンテキスト長
-		CallExec+="--top-p 0.95 "														//nucleus sampling
-		CallExec+="--repeat-penalty 1.0 "												//繰り返し抑制
-		CallExec+="--penalty-last-n 64 "												//repeat-penalty対象トークン数
+		CallExec+="--temp "+Var_LLMTemperature+" "										//temperature
+		CallExec+="--max-tokens "+Var_LLMMaxTokens+" "									//最大トークン
+		CallExec+="--n-ctx "+Var_LLM_N_ctx+" "											//コンテキスト長
+		CallExec+="--top-p "+Var_LLMNucleusSampling+" "									//nucleus sampling
+		CallExec+="--repeat-penalty "+Var_LLMRepeatPenalty+" "							//繰り返し抑制
+		CallExec+="--penalty-last-n "+Var_LLMRepeatPenaltyTokens+" "					//repeat-penalty対象トークン数
 		CallExec+="--stream "															//トークンを逐次出力する
 //		CallExec+="--think-cut "														//思考を分離
 //		CallExec+="--think-start hoge --think-end huga "								//thinkタグの指定
 		logmes "[指示なし] "+CallExec
 	}else{
 		CallExec =""+dir_cur+"/llm/LLMTextCore.exe "									//実行ファイル
-		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelCnt)+"\" "		//モデル指定
+		CallExec+="--model \""+dir_cur+"/llm/"+ValidModelList(LLMModelListCnt)+"\" "		//モデル指定
 		CallExec+="-p \""+tmp+"\" "														//プロンプト
 		CallExec+="-s \"あなたは付箋管理ソフトウェア内蔵の日本語チャットボットです。指示「"+PostText+"」に従って文章を要約してください。\" "	//システムプロンプト
-		CallExec+="--temp 0.7 "															//temperature
-		CallExec+="--max-tokens 65535 "													//最大トークン
-		CallExec+="--n-ctx 4096 "														//コンテキスト長
-		CallExec+="--top-p 0.95 "														//nucleus sampling
-		CallExec+="--repeat-penalty 1.0 "												//繰り返し抑制
-		CallExec+="--penalty-last-n 64 "												//repeat-penalty対象トークン数
+		CallExec+="--temp "+Var_LLMTemperature+" "										//temperature
+		CallExec+="--max-tokens "+Var_LLMMaxTokens+" "									//最大トークン
+		CallExec+="--n-ctx "+Var_LLM_N_ctx+" "											//コンテキスト長
+		CallExec+="--top-p "+Var_LLMNucleusSampling+" "									//nucleus sampling
+		CallExec+="--repeat-penalty "+Var_LLMRepeatPenalty+" "							//繰り返し抑制
+		CallExec+="--penalty-last-n "+Var_LLMRepeatPenaltyTokens+" "					//repeat-penalty対象トークン数
 		CallExec+="--stream "															//トークンを逐次出力する
 //		CallExec+="--think-cut "														//思考を分離
 //		CallExec+="--think-start hoge --think-end huga "								//thinkタグの指定
@@ -364,28 +397,42 @@ stop
 		pipeget dummy,0
 		if stat=0:break
 		tmp+=dummy
-		objprm 1,ShowTemporaryData("\n\n["+ValidModelList(LLMModelCnt)+" が応答中]\n"+tmp+"\n\n")
+		objprm 1,ShowTemporaryData("\n\n["+ValidModelList(LLMModelListCnt)+" が応答中]\n"+tmp+"\n\n")
 		sendmsg DisplayMSGBoxHWND, 0x00B5, 7, 0
-		await 300
+		await int(Var_SamplingAwait)
+	loop
+	repeat length(ReplaceFeedP2)
+//		dialog "置換を実施します。\n対象:"+res+"\nP2:"+ReplaceFeedP2(cnt)+"\nP3:"+ReplaceFeedP3(cnt)+"\nP4:"+ReplaceFeedP4(cnt)+"\nP6:"+ReplaceFeedP6(cnt)
+		res = replace(res,ReplaceFeedP2(cnt),ReplaceFeedP3(cnt),ReplaceFeedP4(cnt),0,ReplaceFeedP6(cnt))
 	loop
 	//<think>があれば除去する
 	dim IsNowThinkPart
 	sdim AIResponse,65535
 	notesel res
+	sdim FlagStart : sdim FlagEND
+	split Var_LLMThinkTagStart,"@",FlagStart
+	split Var_LLMThinkTagEND  ,"@",FlagEND
 	repeat notemax
 		sdim tmp
 		noteget tmp,cnt
 		strrep tmp,"*",""
 		strrep tmp,"- ","・"
-		if instr(tmp,0,"<think>")=0	{IsNowThinkPart=1:continue}
-		if instr(tmp,0,"</think>")=0{IsNowThinkPart=0:continue}
-		if IsNowThinkPart{continue}
+		isNeedContinue=0
+		repeat length(FlagStart)
+			if instr(tmp,0,FlagStart(cnt))=0{IsNowThinkPart=1:IsNeedContinue=1:break}
+		loop
+		repeat length(FlagEND)
+			if instr(tmp,0,FlagEND(cnt)  )=0{IsNowThinkPart=0:IsNeedContinue=1:break}
+		loop
+		if IsNeedContinue or IsNowThinkPart{continue}
 		if tmp=""{continue}
 		AIResponse+="\n"+tmp
 	loop
 	noteunsel
+	strrep AIResponse,"、","、\n"
+	strrep AIResponse,"。","。\n"
 	SetShowData
-	objprm 1,ShowStableData("["+ValidModelList(LLMModelCnt)+"] は以下の新しい案を作成しました。\n\n受け入れて上書き保存する場合は「受け入れる」を、\nもう一度挑戦したい場合は「リトライする」を押してください。\nその場合、AIに伝えたいことがあれば下の欄に端的に入力してください。\n"+AIResponse)
+	objprm 1,ShowStableData("["+ValidModelList(LLMModelListCnt)+"] は以下の新しい案を作成しました。\n\n受け入れて上書き保存する場合は「受け入れる」を、\nもう一度挑戦したい場合は「リトライする」を押してください。\nその場合、AIに伝えたいことがあれば下の欄に端的に入力してください。\n"+AIResponse)
 	sendmsg DisplayMSGBoxHWND, 0x00B5, 7, 0
 	UserInput="" : objprm 2,"" : objenable 2,1 : objenable 3,1 : objenable 4,1 : objenable 5,1
 stop
