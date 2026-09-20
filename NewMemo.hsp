@@ -5,6 +5,7 @@
 	GetWindowLong hwnd, -16
 	SetWindowLong hwnd, -16, stat - $80000
 	width ,,ginfo(20)/2-TrueScale(160),ginfo(21)/2-TrueScale(100)
+	SetTitle "新しい付箋を作る"
 	pos 0,0:objsize TrueScale(320),TrueScale(40):dummy=": 新しい付箋を作る":font "",TrueScale(32):objmode 2
 	if Var_isForceTop {gsel 3,2}else{gsel 3,1}
 	input dummy:objenable 0,0
@@ -17,8 +18,8 @@
 	dummy=".note"
 	pos              0,TrueScale(120):objsize TrueScale(240),TrueScale(30):input FileName
 	pos TrueScale(240),TrueScale(120):objsize TrueScale( 80),TrueScale(30):input dummy    : objenable 3,0
-	pos   0,TrueScale(150):objsize TrueScale(160),TrueScale(50):button "キャンセル",*ExitMemo
-	pos 160,TrueScale(150):objsize TrueScale(160),TrueScale(50):button "作成",		*CreateMemo
+	pos              0,TrueScale(150):objsize TrueScale(160),TrueScale(50):button "キャンセル",*ExitMemo
+	pos TrueScale(160),TrueScale(150):objsize TrueScale(160),TrueScale(50):button "作成",		*CreateMemo
 	stop
 
 *CreateMemo
@@ -28,7 +29,7 @@
 		stop
 	}
 	sdim NewMemoDraft
-	NewMemoDraft="[info]\npos_x=100\npos_y=120\nsize_x=120\nsize_y=120\nisForceTop=1\n\n[Content]\n空っぽの新しいメモ"
+	NewMemoDraft="[info]\npos_x=100\npos_y=120\nsize_x=120\nsize_y=120\nisForceTop=1\nmemoScale=1.0\n\n[Content]\n空っぽの新しいメモ"
 	notesel NewMemoDraft
 	notesave dir_cur+"/memo/"+FileName+".note"
 	repeat length(ValidMemoList)
@@ -51,6 +52,7 @@
 	GetWindowLong hwnd, -16
 	SetWindowLong hwnd, -16, stat - $80000
 	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	SetTitle "付箋を書き換える"
 	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": 付箋を書き換える":font "",TrueScale(32):objmode 2
 	if Var_isForceTop {gsel 3,2}else{gsel 3,1}
 	input dummy:objenable 0,0
@@ -104,6 +106,7 @@
 	GetWindowLong hwnd, -16
 	SetWindowLong hwnd, -16, stat - $80000
 	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	SetTitle "付箋「"+ValidMemoList(TmpDisplayCnt)+"」を書き換える"
 	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": 付箋「"+ValidMemoList(TmpDisplayCnt)+"」を書き換える":font "",TrueScale(32):objmode 2
 	if Var_isForceTop {gsel 3,2}else{gsel 3,1}
 	input dummy:objenable 0,0
@@ -113,11 +116,21 @@
 	strrep EditMemoSTR,",","\n"
 	font "",TrueScale(20)
 	mesbox EditMemoSTR,,,1,65535
-	pos 0,TrueScale(300):objsize TrueScale(640),TrueScale(40)
+	
+	pos 0,TrueScale(300):objsize TrueScale(320),TrueScale(40)
 	font "",TrueScale(18)
 	dim isUserWantForceTop
 	isUserWantForceTop=isMemoForceTopList(TmpDisplayCnt)
 	chkbox "付箋を最前面表示させる",isUserWantForceTop
+	
+	pos TrueScale(320),TrueScale(300):objsize TrueScale(240),TrueScale(40)
+	dummy="付箋のサイズ倍率 (0.5～2.0)"
+	input dummy,,,0
+	
+	pos TrueScale(560),TrueScale(300):objsize TrueScale( 80),TrueScale(40)
+	InputMemoScale=strf("%1.2f",MemoScaleList(TmpDisplayCnt))
+	input InputMemoScale,,,0
+	
 	pos 0,TrueScale(340):objsize TrueScale(640),TrueScale(90)
 	font "",TrueScale(15)
 	sdim dummy:dummy="・文頭に「# 」をつけるとh1、「## 」をつけるとh2...という風に、#の数で見出し構造を作れます。\n  #は1～4つ使用でき、#と本文の間は半角スペースを開けてください\n・文頭に「* 」をつけることで、その分を強調できます\n・「[EOF]」とのみ書かれた行の後は無視されます。"
@@ -149,7 +162,13 @@
 	sdim tmp
 	tmp=LoadMemoMetaData(ValidMemoList(TmpDisplayCnt))
 	split tmp,",",tmp
-	NewMemoDraft="[info]\npos_x="+str(tmp(0))+"\npos_y="+str(tmp(1))+"\nsize_x="+str(tmp(2))+"\nsize_y="+str(tmp(3))+"\nisForceTop="+isUserWantForceTop+"\n\n[Content]\n"+NewMemoDraft
+
+	InputMemoScale=double(InputMemoScale)
+	if InputMemoScale>double(2.0)	{InputMemoScale=double(2.0)}
+	if InputMemoScale<=double(0.5)	{InputMemoScale=double(0.5)}
+	InputMemoScale=str(InputMemoScale)
+	gosub *SaveMemoMetaData
+	NewMemoDraft="[info]\npos_x="+str(tmp(0))+"\npos_y="+str(tmp(1))+"\nsize_x="+str(tmp(2))+"\nsize_y="+str(tmp(3))+"\nisForceTop="+isUserWantForceTop+"\nmemoScale="+InputMemoScale+"\n\n[Content]\n"+NewMemoDraft
 	delete dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)
 	notesel NewMemoDraft
 	notesave dir_cur+"/memo/"+ValidMemoList(TmpDisplayCnt)

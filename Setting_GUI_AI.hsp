@@ -1,5 +1,7 @@
 *Setting_GUI_AI
 	gosub *Setting_GUI_Commons
+	SetTitle "設定 - AI関連の高度な設定"
+	redraw 0
 	objprm 0,":設定 - AI関連の高度な設定"
 	objenable 3,0
 	//AI
@@ -67,6 +69,7 @@
 	button gosub "タグをリストから消す",*Setting_ThinkENDTagDel
 
 	pos TrueScale(0),TrueScale(440):objsize TrueScale(320),TrueScale(40):button gosub "AI出力を正規表現で置換する..."	,*Setting_GUI_AI_REGEXP
+	redraw 1
 return
 
 *Setting_ThinkStartTagAdd

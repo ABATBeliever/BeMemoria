@@ -9,10 +9,10 @@ if varuse(spv)=0 {
 
 // 画面サイズ把握
 GetDispMaxSize w,h: p=stat
-if p=0 { dialog "画面サイズの把握に失敗しました。",1,"Error 0x00" }
+if p=0 { dialog "[SCAN] 画面サイズの把握に失敗しました。",1:end}
 SizeMax = ""+w+"x"+h
 GetMultiDispInfo 16,prm,rect: p=stat
-if p=0 { dialog "マルチディスプレイ情報の取得に失敗しました。",1,"Error 0x01" }
+if p=0 { dialog "[SCAN] マルチディスプレイ情報の取得に失敗しました。",1:end}
 DisplayNum   = 0
 DisplayNum   = prm(2)
 PrimaryIndex = prm(3)

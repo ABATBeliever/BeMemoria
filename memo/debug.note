@@ -1,9 +1,10 @@
 [info]
-pos_x=102
-pos_y=183
-size_x=306
-size_y=266
+pos_x=1359
+pos_y=583
+size_x=466
+size_y=424
 isForceTop=1
+memoScale=2.000000
 
 [Content]
 # h1

@@ -1,5 +1,5 @@
 /*
- BeMemoria v0.8 [Beta]
+ BeMemoria v0.8.3 [Beta]
  Made by ABATBeliever
 
  https://abatbeliever.net
@@ -23,15 +23,15 @@
 
 //定数
 AppName          = "BeMemoria"
-AppVer           = "0.8 Beta"
-AppVerInt        = "0.8"
+AppVer           = "0.8.3 Beta"
+AppVerInt        = "0.8.3"
 
 UseLLMTextCoreAPILevel = "1.0"
 
 #define ctype HIWORD(%1) (%1 >> 16 & $FFFF)
 
 //エラーハンドリング
-//onerror *onerror_handle
+onerror *onerror_handle
 //終了時の処理の予約
 onexit *exit
 
@@ -89,7 +89,7 @@ oncmd gosub *OnClickBox, $111
 #include "DataScanner.hsp"
 
 //GUI設定
-screen 0,TrueScale(640),TrueScale(480),0							//画面サイズを設定
+screen 0,TrueScale(640),TrueScale(480),screen_hide					//画面サイズを設定
 width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)		//デスクトップの中心に表示
 SetTitle ""
 color 192,192,192:boxf:color 0,0,0			//色の初期化
@@ -105,9 +105,6 @@ dummy+="\nメモを配置中...":objprm 1,dummy:gosub *SetMemo		//メモを配置
 screen 1,100,100,screen_hide
 screen 2,100,100,screen_hide
 screen 3,100,100,screen_hide
-
-//全面表示設定
-if Var_isForceTop {gsel 0,2}else{gsel 0,1}
 
 gsel 0
 pos TrueScale(  0),TrueScale(380):objsize TrueScale(160),TrueScale(50):button gosub "ようこそ",	*DisplayMode0
@@ -131,7 +128,31 @@ pos TrueScale(480),TrueScale(430):objsize TrueScale(160),TrueScale(50):button go
 hWndList(0)=hwnd
 gosub *SaveMemoMetaData
 
-if Var_HideWhenBoot{gsel 0:sendmsg hwnd, $112, $F020}
+switch Var_HideWhenBoot
+	case 0 //0なら普通の処理
+		//全面表示設定
+		if Var_isForceTop {gsel 0,2}else{gsel 0,1}
+		swbreak
+	case 1 //最小化する
+		gsel 0
+		sendmsg hwnd, $112, $F020
+		if Var_isForceTop {gsel 0,2}else{gsel 0,1}
+		swbreak
+	default //2ならどうするか聞く(初回)
+		if Var_isForceTop {gsel 0,2}else{gsel 0,1}
+		dialog "次回以降の起動時にも、ようこそ画面を表示していいですか?\n\n表示する場合は「OK」、表示しない場合は「キャンセル」を選んで下さい。\n\n※いつでも「設定」から変更できます。\n※表示しない場合は、タスクトレイのアイコンを押して再表示できます。",2,"はじめまして"
+		if stat=6{//する
+			Setini_File dir_cur+"\\Config.ini"
+			Setini_int "graphic","HideWhenBoot",0
+			Var_HideWhenBoot=0
+		}else{//しない
+			Setini_File dir_cur+"\\Config.ini"
+			Setini_int "graphic","HideWhenBoot",1
+			Var_HideWhenBoot=1
+		}
+		swbreak
+	swend
+	
 stop
 
 /////////////////////////////////////////////////////
@@ -146,10 +167,9 @@ stop
 stop
 
 *onerror_handle
-	tmp ="重大な問題が発生しました。\n"+AppName+"を終了します。\n\n"
+	tmp ="エラーが起こりました。"+AppName+"を終了します。\n\n"
 	tmp+="ﾊﾞｰｼﾞｮﾝ:"+AppVer+"\n"
-	tmp+="エラーコード: "
-	tmp+="0x"+strf("%04d",wparam)
+	tmp+="エラーコード: 0x"+strf("%04d",wparam)
 	tmp+="\n\n上記のデバッグ情報と状況を報告してくださると、修正の助けになります！"
 	dialog tmp,1
 end
@@ -188,6 +208,16 @@ return
 	if wparam = 1 {
 		sendmsg hWndList(ginfo(2)), $A1, 2
 	return
+	}
+return
+
+*vscroll
+	if lparam = hTrackbarOpacity {
+		sendmsg hTrackbarOpacity, $400
+		Var_Opacity=stat
+		if Var_Opacity>90{Var_Opacity=90}
+		gsel 1 : objprm 10,"付箋の透明度("+str(Var_Opacity)+"%)"
+//		Var_Opacity=100-Var_Opacity
 	}
 return
 

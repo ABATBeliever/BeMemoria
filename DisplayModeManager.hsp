@@ -18,13 +18,30 @@
 return
 
 *DisplayMode1
-	tmp ={"使い方dummy"}
+	tmp ={"使い方
+
+# 付箋を新しく作る
+「新しい付箋を書く」から付箋を作りましょう。
+
+# 付箋を書き換える または 削除する
+付箋を編集/削除 ボタンで対象を選びましょう。
+
+# ﾛｰｶﾙAIと話す
+「ﾛｰｶﾙAIに尋ねる」から、
+付箋を読ませて会話したり、付箋を編集させたり
+を、好きなAIモデルにやってもらうことができます。
+※初期セットアップが必要です。「AI機能を活用する.txt」をご覧ください。
+
+# 自動起動する
+BeMemoria.exeを右クリックしてコピーし、
+エクスプローラに「shell:startup」と打って移動し、
+そこに「ショートカットを張り付け」することで、次回から自動で起動するようになります。"}
 	gosub *DisplayDo
 return
 
 *DisplayMode2
 
-	tmp ="各種情報\n========\nディスプレイ情報:\n"+DisplayInfo
+	tmp ="各種情報\n========\nディスプレイ情報:\n"+DisplayInfo//+"\n現在は:"+PrimaryIndex
 	tmp+"\nSpeak API:"
 	if IsCanUseSAPI{
 		tmp+="利用可能"
@@ -35,8 +52,9 @@ return
 	if IsCanUseAI{
 		tmp+="利用可能\n>>"+LLMTextCoreVersion+"必要な	APIレベル:"+UseLLMTextCoreAPILevel+"\nﾓｼﾞｭｰﾙの	APIレベル:"+LLMTextCoreAPILevel
 	}else{
-		tmp+="利用不能\n必要なAPIレベル:"+UseLLMTextCoreAPILevel+"\nﾓｼﾞｭｰﾙのAPIレベル: -"
+		tmp+="利用不能\n必要なAPIレベル:"+UseLLMTextCoreAPILevel+"\nﾓｼﾞｭｰﾙのAPIレベル: -\n"
 	}
+	tmp+="\n========\n"+AppName+" は、ABATBelieverが個人で制作しているHSP3製ソフトです。\n\nゼロ条項BSD / フリー・パブリック・ライセンス 1.0.0 (0BSD) に基づき、\n自由な利用、改変、再配布が出来ます。\n\n\n"
 	gosub *DisplayDo
 return
 

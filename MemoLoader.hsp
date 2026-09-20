@@ -10,8 +10,9 @@
 		sdim tmp	:	noteget tmp,3	:	if 0!=instr(tmp,0,"size_x=") 	{logmes "out4":noteunsel:return 1}
 		sdim tmp	:	noteget tmp,4	:	if 0!=instr(tmp,0,"size_y=")	{logmes "out5":noteunsel:return 1}
 		sdim tmp	:	noteget tmp,5	:	if 0!=instr(tmp,0,"isForceTop="){logmes "out6":noteunsel:return 1}
+		sdim tmp	:	noteget tmp,6	:	if 0!=instr(tmp,0,"memoScale=") {logmes "out7":noteunsel:return 1}
 
-		sdim tmp:noteget tmp,7:if tmp!="[Content]"							{logmes "out7":noteunsel:return 1}
+		sdim tmp:noteget tmp,8:if tmp!="[Content]"							{logmes "out8":noteunsel:return 1}
 		noteunsel
 	return 0
 	
@@ -25,6 +26,7 @@
 		sdim tmp	:	noteget tmp,3	:	strrep tmp,"size_x=",""	    :	if str(tmp)=""{tmp=100}	:	res+=","+str(tmp)
 		sdim tmp	:	noteget tmp,4	:	strrep tmp,"size_y=",""	    :	if str(tmp)=""{tmp=100}	:	res+=","+str(tmp)
 		sdim tmp	:	noteget tmp,5	:	strrep tmp,"isForceTop=",""	:	if str(tmp)=""{tmp=1}	:	res+=","+str(tmp)
+		sdim tmp	:	noteget tmp,6	:	strrep tmp,"memoScale=",""	:	if str(tmp)=""{tmp=1.0}	:	res+=","+str(tmp)
 		noteunsel
 	return res
 	
@@ -36,7 +38,7 @@
 		notesel buffers
 		noteload dir_cur+"/memo/"+p1
 		repeat notemax
-			if cnt<8 : continue
+			if cnt<9 : continue
 			noteget tmp,cnt
 			strrep tmp,",","-"
 			if tmp=""{tmp="空っぽです":continue}else{break}
@@ -52,7 +54,7 @@
 		notesel buffers
 		noteload dir_cur+"/memo/"+p1
 		repeat notemax
-			if cnt<8 : continue
+			if cnt<9 : continue
 			noteget tmp,cnt
 			strrep tmp,",","-"
 			res+=tmp+","
@@ -63,7 +65,7 @@
 
 	#deffunc SaveMemoMetaDataTaskDo str p1, int p2, int p3
 		Setini_File dir_cur+"/memo/"+p1
-		if ginfo(25)=p2 or ginfo(25)<p2{dialog "デバッグ情報0x06 MemoLoader "+ginfo(25):return}
+		if ginfo(25)=p2 or ginfo(25)<p2{return}//dialog "問題が発生しました。(SaveMemoMetaDataTaskDo 関数に失敗 "+ginfo(25)+")":return}//end}
 		gsel p2
 		Setini_int "info","pos_x",ginfo(4)
 		Setini_int "info","pos_y",ginfo(5)
@@ -102,18 +104,21 @@ return
 
 *SetMemo
 	sdim ValidMemoTitleList
+	ddim MemoScaleList
 	dim isMemoForceTopList
 	repeat length(ValidMemoList)
 		sdim tmp
 		if ValidMemoList(cnt)="" : continue
 		tmp=LoadMemoMetaData(ValidMemoList(cnt))
-		dim pos_x : dim pos_y : dim size_x : dim size_y : sdim ForceTopTmp
-		split tmp,",",pos_x,pos_y,size_x,size_y,ForceTopTmp,ValidMemoTitleList(cnt)
+		dim pos_x : dim pos_y : dim size_x : dim size_y : sdim ForceTopTmp : sdim MemoScaleTmp
+//		split tmp,",",pos_x,pos_y,size_x,size_y,ForceTopTmp,ValidMemoTitleList(cnt),MemoScaleTmp
+		split tmp,",",pos_x,pos_y,size_x,size_y,ForceTopTmp,MemoScaleTmp
 		pos_x =int(pos_x)  : pos_y =int(pos_y)
-		size_x=int(size_x) : size_y=int(size_y)
+		size_x=int(size_x) : size_y=int(size_y)//:dialog MemoScaleTmp
 		isMemoForceTopList(cnt)=int(ForceTopTmp)
-		if ginfo(20)+100 < pos_x or 0 > pos_x {pos_x=ginfo(20)+100}
-		if ginfo(21)+100 < pos_y or 0 > pos_y {pos_y=ginfo(21)+100}
+		MemoScaleList(cnt)=double(MemoScaleTmp)
+		if ginfo(20)-200 < pos_x or 0 > pos_x {pos_x=ginfo(20)-400}
+		if ginfo(21)-200 < pos_y or 0 > pos_y {pos_y=ginfo(21)-400}
 		if size_x>1000 {size_x=1000}
 		if size_y>750 {size_y=750}
 		bgscr (4+cnt),1000,750,screen_hide,pos_x,pos_y,size_x,size_y
@@ -123,20 +128,21 @@ return
 		SetWindowLong hwnd, -16, stat | $40000	//サイズ可変
 		GetWindowLong hwnd, -20
 		SetWindowLong hwnd, -20, stat | $80000
-		SetLayeredWindowAttributes hwnd, 0, 255 * Var_Opacity  / 100, 2 //透明度
+		SetLayeredWindowAttributes hwnd, 0, 255 * (100-Var_Opacity)  / 100, 2 //透明度
 		color BGCol_R,BGCol_G,BGCol_B : boxf	//背景色
 		color TCol_R,TCol_G,TCol_B				//文字色
+		pos TrueScale(10),TrueScale(10)
 		dim NowMaxSize_X
 		dim NowMaxSize_Y
 		sdim Text
 		Text=LoadMemoText(ValidMemoList(cnt))
 		split Text,",",Text
 		repeat length(Text)
-			if       instr(Text(cnt),0,"# ") =0{  font "",TrueScale(Var_h1Size):logmes "h1 "+Text(cnt)
-			}else:if instr(Text(cnt),0,"## ")=0{  font "",TrueScale(Var_h2Size):logmes "h2 "+Text(cnt)
-			}else:if instr(Text(cnt),0,"### ")=0{ font "",TrueScale(Var_h3Size):logmes "h3 "+Text(cnt)
-			}else:if instr(Text(cnt),0,"#### ")=0{font "",TrueScale(Var_h4Size):logmes "h4 "+Text(cnt)
-			}else{                                font "",TrueScale(Var_Normal):logmes "Normal "+Text(cnt)
+			if       instr(Text(cnt),0,"# ") =0{  font "",TrueScale(Var_h1Size)*MemoScaleTmp:logmes "h1 "+Text(cnt)
+			}else:if instr(Text(cnt),0,"## ")=0{  font "",TrueScale(Var_h2Size)*MemoScaleTmp:logmes "h2 "+Text(cnt)
+			}else:if instr(Text(cnt),0,"### ")=0{ font "",TrueScale(Var_h3Size)*MemoScaleTmp:logmes "h3 "+Text(cnt)
+			}else:if instr(Text(cnt),0,"#### ")=0{font "",TrueScale(Var_h4Size)*MemoScaleTmp:logmes "h4 "+Text(cnt)
+			}else{                                font "",TrueScale(Var_Normal)*MemoScaleTmp:logmes "Normal "+Text(cnt)
 			}
 			if Text(cnt)="[EOF]"{break}
 			strrep Text(cnt),"#### ",""
@@ -155,8 +161,8 @@ return
 				NowMaxSize_Y+=ginfo(15)
 			}
 		loop
-		NowMaxSize_X+=TrueScale(20)
-		NowMaxSize_Y+=TrueScale(20)
+		NowMaxSize_X+=TrueScale(40)
+		NowMaxSize_Y+=TrueScale(40)
 		pos NowMaxSize_X,NowMaxSize_Y:mes "+"		
 		width NowMaxSize_X,NowMaxSize_Y
 		if isMemoForceTopList(cnt) {gsel (4+cnt),2}else{gsel (4+cnt),1}

@@ -87,32 +87,31 @@ return 0
 return 0
 
 *Setting_GUI_SAVE_DO
-	ValidationSTR2DoubleSTR NEW_ViewScale,"0.75","3.0","1.0"
+	ValidationSTR2DoubleSTR NEW_ViewScale,"0.5","3.0","1.0"
 	
-	Var_Opacity=int(Var_OpacitySTR) : ValidationSTR2IntSTR Var_Opacity,"0","90","10"
+	Var_Opacity=int(Var_Opacity) : ValidationSTR2IntSTR Var_Opacity,"0","90","10"
 
 	Var_TextColor=""+TCol_R+","+TCol_G+","+TCol_B : Var_BackGroundColor=""+BGCol_R+","+BGCol_G+","+BGCol_B
+	Var_h1Size=int(Var_h1SizeSTR) : Var_h2Size=int(Var_h2SizeSTR) : Var_h3Size=int(Var_h3SizeSTR) : Var_h4Size=int(Var_h4SizeSTR) : Var_Normal=int(Var_NormalSTR)
 
-	ValidationSTR2IntSTR Var_h1Size,"1","50","36"
-	ValidationSTR2IntSTR Var_h2Size,"1","50","33"
-	ValidationSTR2IntSTR Var_h3Size,"1","50","30"
-	ValidationSTR2IntSTR Var_h4Size,"1","50","27"
-	ValidationSTR2IntSTR Var_Normal,"1","50","24"
+	ValidationSTR2IntSTR Var_h1Size,"1","64","30"
+	ValidationSTR2IntSTR Var_h2Size,"1","64","27"
+	ValidationSTR2IntSTR Var_h3Size,"1","64","24"
+	ValidationSTR2IntSTR Var_h4Size,"1","64","21"
+	ValidationSTR2IntSTR Var_Normal,"1","64","18"
 
-	ValidationSTR2IntSTR    Var_SamplingAwait          ,"  1"," 2000","   300"
-	ValidationSTR2DoubleSTR Var_LLMTemperature         ,"  0"," 2048","   0.7"
-	ValidationSTR2IntSTR    Var_LLMMaxTokens           ," 32","65535"," 65535"
-	ValidationSTR2INTSTR    Var_LLM_N_ctx              ," 64"," 8192","  4096"
-	ValidationSTR2DoubleSTR Var_LLMNucleusSampling     ,"  0","  1.0","  0.95"
-	ValidationSTR2DoubleSTR Var_LLMRepeatPenalty       ,"  0","  1.0","   1.0"
-	ValidationSTR2INTSTR    Var_LLMRepeatPenaltyTokens ,"  0"," 2048","    64"
+	ValidationSTR2IntSTR    Var_SamplingAwait          ,"  1","  2000","  300"
+	ValidationSTR2DoubleSTR Var_LLMTemperature         ,"  0","  2048","  0.7"
+	ValidationSTR2IntSTR    Var_LLMMaxTokens           ," 32","262140","65535"
+	ValidationSTR2INTSTR    Var_LLM_N_ctx              ," 64","  8192"," 4096"
+	ValidationSTR2DoubleSTR Var_LLMNucleusSampling     ,"  0","   1.0"," 0.95"
+	ValidationSTR2DoubleSTR Var_LLMRepeatPenalty       ,"  0","   1.0","  1.0"
+	ValidationSTR2INTSTR    Var_LLMRepeatPenaltyTokens ,"  0","  2048","   64"
 	
 	strrep LIST_LLMThinkTagSTART,"\n","@" : Var_LLMThinkTagStart = LIST_LLMThinkTagSTART
 	strrep LIST_LLMThinkTagEND  ,"\n","@" : Var_LLMThinkTagEND   = LIST_LLMThinkTagEND
 	
 	Setini_File dir_cur+"\\Config.ini"
-
-	Setini_str "main","target","BeMemoria"
 	
 	Setini_int "graphic","DPIMode",Var_DPIMode
  	Setini_int "graphic","IsForceTop",Var_isForceTop
@@ -144,7 +143,7 @@ return 0
 	Setini_str "LocalAI","ReplaceFeed",Var_ReplaceFeed
 
 	SettingLoad
-	gosub *MemoListLoad	: gosub *SetMemo
+	gosub *SaveMemoMetaData : gosub *MemoListLoad : gosub *SetMemo
 	dialog "保存しました。\nアプリを終了します。手動で起動しなおしてください。"
 end
 

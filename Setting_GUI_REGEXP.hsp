@@ -1,8 +1,10 @@
 *Setting_GUI_AI_REGEXP
 	oncmd gosub *OnClickBox, $111
 	gosub *Setting_GUI_Commons
+	SetTitle "設定 - AI関連の高度な設定 / 正規表現"
 	objprm 0,":設定 - AI関連の高度な設定 / 正規表現..."
 	objenable 2,0
+	redraw 0
 	//AI
 	font "",TrueScale(16)
 
@@ -15,8 +17,14 @@
 	
 	
 	pos TrueScale(320),TrueScale(120):objsize TrueScale(320),TrueScale(120)
-	dummy={"正規表現の記法はmod_regexp.asに依存します。\n・英語と記号以外を記入しないでください。"}
-	mesbox dummy,,,0,0:objenable 5,0
+	dummy={"・$num num番目のサブマッチ文字列に置換されます。一つ目のサブマッチは$1で最大$99まで指定できます。 
+・$& p2に一致した文字列に置換されます。 
+・$` p1の中で、p2に一致した文字列よりも前方の部分に置換されます。 
+・$' p1の中で、p2に一致した文字列よりも後方の部分に置換されます。 
+・$$ $に置換されます。 
+・エスケープが必要です。
+・英語と数字と記号以外は記入しないでください。"}
+	mesbox dummy,,,0,0//:objenable 5,0
 
 	pos TrueScale(  0),TrueScale(240):objsize TrueScale(320),
 	SEL_ReplaceFeed=0:listbox SEL_ReplaceFeed,TrueScale(180),LIST_ReplaceFeedP2
@@ -50,6 +58,7 @@
 	
 	IsNowEditReplaceRule=0
 	if length(ReplaceFeedP2)=1 and ReplaceFeedP2=""{objenable 8,0}
+	redraw 1
 return
 
 *Setting_AddReplaceRule

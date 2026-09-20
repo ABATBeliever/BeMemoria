@@ -6,6 +6,7 @@
 	GetWindowLong hwnd, -16
 	SetWindowLong hwnd, -16, stat - $80000
 	width ,,ginfo(20)/2-TrueScale(320),ginfo(21)/2-TrueScale(240)
+	gsel 3 : SetTitle "ﾛｰｶﾙAIに与える付箋を選ぶ"
 	pos 0,0:objsize TrueScale(640),TrueScale(40):dummy=": ﾛｰｶﾙAIに与える付箋を選ぶ":font "",TrueScale(32):objmode 2
 	if Var_isForceTop {gsel 3,2}else{gsel 3,1}
 	input dummy:objenable 0,0
@@ -65,13 +66,13 @@ stop
 return
 
 *AddHusenInclude
-	if NoIncludeCnt>length(ValidMemoList):dialog "エラー "+NoIncludeCnt+"/"+length(ValidMemoList)
+	if NoIncludeCnt>length(ValidMemoList):dialog "問題が発生しました。 (AddHusenInclude イベントに失敗"+NoIncludeCnt+"/"+length(ValidMemoList)+" )"
 	IncludeListInternal(NoIncludeCnt)=1
 	gosub *RenderHusenList
 stop
 
 *RemoveHusenInclude
-	if IncludeCnt>length(ValidMemoList):dialog "エラー "+IncludeCnt+"/"+length(ValidMemoList)
+	if IncludeCnt>length(ValidMemoList):dialog "問題が発生しました。 (RemoveHusenInclude イベントに失敗"+IncludeCnt+"/"+length(ValidMemoList)+" )"
 	IncludeListInternal(IncludeCnt)=0
 	gosub *RenderHusenList
 stop

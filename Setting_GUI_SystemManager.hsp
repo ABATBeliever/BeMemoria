@@ -1,5 +1,7 @@
 *Setting_GUI_System
 	gosub *Setting_GUI_Commons
+	SetTitle "設定 - システム設定"
+	redraw 0
 	objprm 0,":設定 - システム設定"
 	objenable 2,0
 	//DPI
@@ -16,15 +18,17 @@
 	dummy="ようこそウィンドウを自動で隠す"		:chkbox dummy,Var_HideWhenBoot
 
 	pos              0,TrueScale(240):objsize TrueScale(250),TrueScale(40)
-	dummy="画面と付箋のスケール(実数倍)":input dummy,,,0:objenable 8,0
+	dummy="画面と付箋のスケール(0.5～3)":input dummy,,,0:objenable 8,0
 	pos TrueScale(250),TrueScale(240):objsize TrueScale(70),TrueScale(40)
 	NEW_ViewScale=Var_ViewScale
 	input NEW_ViewScale,,,4
 
-	pos TrueScale(320),TrueScale(160):objsize TrueScale(280),TrueScale(40)
-	dummy="付箋の透明度(%)":input dummy,,,0:objenable 10,0
-	pos TrueScale(600),TrueScale(160):objsize TrueScale(40),TrueScale(40)
-	sdim Var_OpacitySTR : Var_OpacitySTR=str(100-Var_Opacity):input Var_OpacitySTR,,,4
+	pos TrueScale(320),TrueScale(160):objsize TrueScale(150),TrueScale(40)
+	dummy="付箋の透明度("+str(Var_Opacity)+"%)":input dummy,,,0:objenable 10,0
+	pos TrueScale(470),TrueScale(160)
+	winobj "msctls_trackbar32", "", , $50000000 | $100, TrueScale(170), TrueScale(40):oncmd gosub *vscroll, $114
+	hTrackbarOpacity = objinfo(stat, 2)
+	sendmsg hTrackbarOpacity, $405, 1, Var_Opacity
 
 	pos TrueScale(320),TrueScale(200):objsize TrueScale(240),TrueScale(40)
 	dummy="付箋の文字色":input dummy,,,0:objenable 12,0
@@ -38,24 +42,25 @@
 	pos TrueScale(600),TrueScale(240):objsize TrueScale( 40),TrueScale(40)
 	button gosub "変更",*Setting_BackColor
 
-	pos TrueScale(  0),TrueScale(280):objsize TrueScale(320),TrueScale(120)
-	dummy="文字サイズ\n\n付箋の文字の大きさを指定します。\n\nこの数字は「画面と付箋のスケール」\nの影響をうけます。"
-	mesbox  dummy,,,0,0
-	pos TrueScale(  0),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h1 ｻｲｽﾞ":input dummy,,,0:objenable 17,0
-	pos TrueScale(  0),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h1SizeSTR=str(Var_h1Size):input Var_h1SizeSTR,,,0
-	pos TrueScale( 64),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h2 ｻｲｽﾞ":input dummy,,,0:objenable 19,0
-	pos TrueScale( 64),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h2SizeSTR=str(Var_h2Size):input Var_h2SizeSTR,,,0
-	pos TrueScale(128),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h3 ｻｲｽﾞ":input dummy,,,0:objenable 21,0
-	pos TrueScale(128),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h3SizeSTR=str(Var_h3Size):input Var_h3SizeSTR,,,0
-	pos TrueScale(192),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="h4 ｻｲｽﾞ":input dummy,,,0:objenable 23,0
-	pos TrueScale(192),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_h4SizeSTR=str(Var_h4Size):input Var_h4SizeSTR,,,0
-	pos TrueScale(256),TrueScale(400):objsize TrueScale( 64),TrueScale(40):dummy="普通":input dummy,,,0:objenable 25,0
-	pos TrueScale(256),TrueScale(440):objsize TrueScale( 64),TrueScale(40):Var_NormalSTR=str(Var_Normal):input Var_NormalSTR,,,0
+	pos TrueScale(  0),TrueScale(280):objsize TrueScale(320),TrueScale(200)
+	dummy="文字サイズ\n\n付箋の文字の大きさを指定します。\n\nこの数字は「画面と付箋のスケール」\nの影響をうけます。\n\nなお、h1～h4はそれぞれ\n「# 」～「#### 」に対応します。"
+	mesbox  dummy,,,0,0:objenable 16,0
+	pos TrueScale(320),TrueScale(280):objsize TrueScale(220),TrueScale(24):dummy="h1　 ｻｲｽﾞの文字 (1～64)":input dummy,,,0:objenable 17,0
+	pos TrueScale(540),TrueScale(280):objsize TrueScale(100),TrueScale(24):Var_h1SizeSTR=str(Var_h1Size):input Var_h1SizeSTR,,,0
+	pos TrueScale(320),TrueScale(304):objsize TrueScale(220),TrueScale(24):dummy="h2　 ｻｲｽﾞの文字 (1～64)":input dummy,,,0:objenable 19,0
+	pos TrueScale(540),TrueScale(304):objsize TrueScale(100),TrueScale(24):Var_h2SizeSTR=str(Var_h2Size):input Var_h2SizeSTR,,,0
+	pos TrueScale(320),TrueScale(328):objsize TrueScale(220),TrueScale(24):dummy="h3　 ｻｲｽﾞの文字 (1～64)":input dummy,,,0:objenable 21,0
+	pos TrueScale(540),TrueScale(328):objsize TrueScale(100),TrueScale(24):Var_h3SizeSTR=str(Var_h3Size):input Var_h3SizeSTR,,,0
+	pos TrueScale(320),TrueScale(352):objsize TrueScale(220),TrueScale(24):dummy="h4　 ｻｲｽﾞの文字 (1～64)":input dummy,,,0:objenable 23,0
+	pos TrueScale(540),TrueScale(352):objsize TrueScale(100),TrueScale(24):Var_h4SizeSTR=str(Var_h4Size):input Var_h4SizeSTR,,,0
+	pos TrueScale(320),TrueScale(376):objsize TrueScale(220),TrueScale(24):dummy="普通ｻｲｽﾞの文字 (1～64)":input dummy,,,0:objenable 25,0
+	pos TrueScale(540),TrueScale(376):objsize TrueScale(100),TrueScale(24):Var_NormalSTR=str(Var_Normal):input Var_NormalSTR,,,0
 
 	pos TrueScale(320),TrueScale(400):objsize TrueScale(160),TrueScale(40):button gosub "'設定を開く前'に戻す"	,*Setting_ReloadSettings_ASK
 	pos TrueScale(480),TrueScale(400):objsize TrueScale(160),TrueScale(40):button "'既定値'に戻す"		,*Setting_RegeneSettings_ASK
 	pos TrueScale(320),TrueScale(440):objsize TrueScale(160),TrueScale(40):button "変更を保存せず閉じる"		,*Setting_GUI_Close
 	pos TrueScale(480),TrueScale(440):objsize TrueScale(160),TrueScale(40):button "変更を保存して閉じる"		,*Setting_GUI_SAVE
+	redraw 1
 return
 
 *Setting_TextColor
