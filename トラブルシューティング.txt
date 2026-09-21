@@ -6,6 +6,10 @@
 原因: hspinet.dllがexeと同じパス上にない
 対策: zipを再び展開しhspinet.dllを配置する
 
+◇ 「hspext.dll」がexeと同じパスにありません。これでは起動できません。
+原因: hspext.dllがexeと同じパス上にない
+対策: zipを再び展開しhspext.dllを配置する
+
 ◇ hspinetの初期化に失敗しました
 原因: hspinetの初期化に失敗した。なぜ失敗したのかは不明。
 対策: Windowsが正常であるか確認してください。

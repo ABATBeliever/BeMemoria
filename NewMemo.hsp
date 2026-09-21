@@ -36,6 +36,7 @@
 		if ginfo(25)=(4+cnt) or ginfo(25)<(4+cnt){continue}
 		gsel (4+cnt),-1
 	loop
+	gosub *SaveMemoMetaData
 	gosub *MemoListLoad
 	gosub *SetMemo
 	TmpDisplayCnt=-1

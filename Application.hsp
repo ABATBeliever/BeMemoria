@@ -1,5 +1,5 @@
 /*
- BeMemoria v0.8.3 [Beta]
+ BeMemoria v0.8.4 [Beta]
  Made by ABATBeliever
 
  https://abatbeliever.net
@@ -23,8 +23,8 @@
 
 //定数
 AppName          = "BeMemoria"
-AppVer           = "0.8.3 Beta"
-AppVerInt        = "0.8.3"
+AppVer           = "0.8.4 Beta"
+AppVerInt        = "0.8.4"
 
 UseLLMTextCoreAPILevel = "1.0"
 
@@ -52,6 +52,9 @@ SettingLoad
 //フォルダが存在するか
 dirlist dummy,""+dir_cur+"/memo",5
 if stat=0{dialog "「memo」フォルダがありません。\n実行ファイルと同じパスに「memo」フォルダを作ってから起動してください。":end}
+
+exist ""+dir_cur+"/hspext.dll"
+if strsize=-1{dialog "「hspext.dll」がexeと同じパスにありません。\nこれでは起動できません。",1:end}
 
 title "メニューを表示する"
 sdim FileName, 65535

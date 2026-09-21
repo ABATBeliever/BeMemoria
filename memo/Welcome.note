@@ -1,0 +1,17 @@
+[info]
+pos_x=50
+pos_y=50
+size_x=538
+size_y=214
+isForceTop=1
+memoScale=1.0
+
+[Content]
+# BeMemoriaへようこそ！
+## h2
+### h3
+#### h4
+BeMemoriaは、HSP製の仮想付箋ソフトウェアです。
+* 「付箋を編集/削除」から、この付箋を書き換えてみましょう！
+
+🍪🥹🫠🥰😇👀👉🗃️ 絵文字などUnicodeの文字も対応しています！
