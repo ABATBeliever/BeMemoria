@@ -1,5 +1,5 @@
 /*
- BeMemoria v0.8.4 [Beta]
+ BeMemoria v0.9.0 [Beta]
  Made by ABATBeliever
 
  https://abatbeliever.net
@@ -20,13 +20,14 @@
 
 #include "lib/mod_openini.as"	//iniモジュール
 #include "lib/mod_mdispinfo.as"	//画面モジュール
+#include "lib/modTaskDialog.as" //特殊ダイアログ
 
 //定数
 AppName          = "BeMemoria"
-AppVer           = "0.8.4 Beta"
-AppVerInt        = "0.8.4"
+AppVer           = "0.9.0 Beta"
+AppVerInt        = "0.9.0"
 
-UseLLMTextCoreAPILevel = "1.0"
+UseLLMTextCoreAPILevel = "1.1"
 
 #define ctype HIWORD(%1) (%1 >> 16 & $FFFF)
 
@@ -130,6 +131,7 @@ pos TrueScale(480),TrueScale(430):objsize TrueScale(160),TrueScale(50):button go
 
 hWndList(0)=hwnd
 gosub *SaveMemoMetaData
+IsNowMemoHide=0
 
 switch Var_HideWhenBoot
 	case 0 //0なら普通の処理
@@ -143,17 +145,18 @@ switch Var_HideWhenBoot
 		swbreak
 	default //2ならどうするか聞く(初回)
 		if Var_isForceTop {gsel 0,2}else{gsel 0,1}
-		dialog "次回以降の起動時にも、ようこそ画面を表示していいですか?\n\n表示する場合は「OK」、表示しない場合は「キャンセル」を選んで下さい。\n\n※いつでも「設定」から変更できます。\n※表示しない場合は、タスクトレイのアイコンを押して再表示できます。",2,"はじめまして"
-		if stat=6{//する
-			Setini_File dir_cur+"\\Config.ini"
-			Setini_int "graphic","HideWhenBoot",0
-			Var_HideWhenBoot=0
+		dwFlags@mtd = TDF_USE_COMMAND_LINKS
+		DialogVistaEx "既定の動作の設定","次回以降の起動時にも、\nようこそ画面を表示していいですか?","よい場合は「はい」、よくない場合は「いいえ」を選んで下さい。","※いつでも「設定」から変更できます。\n※表示しない場合は、タスクトレイのアイコンを押して再表示できます。","はい (次回以降も表示します)\nいいえ (次回以降はﾀｽｸﾄﾚｲに畳みます)", 3, 4
+		if stat=101{
+				//する
+				Setini_File dir_cur+"\\Config.ini"
+				Setini_int "graphic","HideWhenBoot",0
+				Var_HideWhenBoot=0
 		}else{//しない
-			Setini_File dir_cur+"\\Config.ini"
-			Setini_int "graphic","HideWhenBoot",1
-			Var_HideWhenBoot=1
+				Setini_File dir_cur+"\\Config.ini"
+				Setini_int "graphic","HideWhenBoot",1
+				Var_HideWhenBoot=1
 		}
-		swbreak
 	swend
 	
 stop
@@ -181,8 +184,23 @@ end
 if (wparam == 1) {
 	switch (lparam)
 		case 0x0201 // WM_LBUTTONDOWN
+			gsel 0
 			ShowWindow hwnd,4
 			swbreak
+		 case $204
+			if IsNowMemoHide{
+			 	gosub *SaveMemoMetaData
+				gosub *MemoListLoad
+				gosub *SetMemo
+				IsNowMemoHide=0
+			}else{
+			 	repeat length(ValidMemoList)
+					if ginfo(25)=(4+cnt) or ginfo(25)<(4+cnt){continue}
+					gsel (4+cnt),-1
+				loop
+				IsNowMemoHide=1
+			}
+		 	swbreak
 	swend
 }
 return
@@ -208,10 +226,25 @@ return
 return
 
 *onjump
-	if wparam = 1 {
+	JumpTmp=wparam
+	if JumpTmp       = 1 {
 		sendmsg hWndList(ginfo(2)), $A1, 2
 	return
-	}
+	}/*else:if JumpTmp = 2 {
+		dwFlags@mtd = TDF_USE_COMMAND_LINKS
+		DialogVistaEx "付箋に手を加える","付箋「"+LoadMemoFirstText(ValidMemoList(ginfo(2)-4))+"」に手を加えますか?","編集、または削除ができます。","※最前面表示を切り替える場合は編集を選んでください。\n※AIに編集させる場合はようこそウィンドウから操作してください。","編集する\n削除する\nキャンセル(なにもしない)", 3, 4
+		switch stat//編集
+			case 101
+				dialog "101"
+				swbreak
+			case 102
+				TmpDisplayCnt=(ginfo(2)-4)
+				goto *DelMemo
+				swbreak
+			default
+				swbreak
+		swend
+	}*/
 return
 
 *vscroll
@@ -225,5 +258,14 @@ return
 return
 
 *exit
+	if isAIRunning{
+		title "AIを中断中です、これには時間が数秒かかります"
+		pipeput 113
+		repeat
+			pipeget dummy,0
+			if stat=0:break
+			await int(Var_SamplingAwait)
+		loop
+	}
 	gosub *SaveMemoMetaData
 end

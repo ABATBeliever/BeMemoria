@@ -103,6 +103,7 @@
 return
 
 *SetMemo
+	IsNowMemoHide=0
 	sdim ValidMemoTitleList
 	ddim MemoScaleList
 	dim isMemoForceTopList
@@ -149,6 +150,7 @@ return
 			strrep Text(cnt),"### ",""
 			strrep Text(cnt),"## ",""
 			strrep Text(cnt),"# ",""
+			strrep Text(cnt),"- ","ÅE"
 			if instr(Text(cnt),0,"* ") =0{
 				strrep Text(cnt),"* ",""
 				mes Text(cnt),2

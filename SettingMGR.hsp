@@ -15,7 +15,7 @@ return
 return
 
 *Setting_RegeneSettings_ASK
-	dialog "全ての設定キーは、既定値に戻ります。\nよろしいですか?",2
+	dialog "全ての設定キーは、既定値に戻ります。\nよろしいですか?\n\n※この設定とは、アプリの挙動の設定のみをさします。\n　書いた付箋の情報は保持されます。",2
 	if stat=7{stop}
 	exist dir_cur+"\\Config.ini" : if strsize!=-1{delete dir_cur+"\\Config.ini"}
 	SettingLoad
